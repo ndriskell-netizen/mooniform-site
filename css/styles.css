@@ -528,3 +528,35 @@ button:active,
   outline: 2px solid rgba(0,0,0,0.55);
   outline-offset: 2px;
 }
+
+/* ------------------------------------
+   Mobile: simplify visuals
+   - no grain
+   - no color tint
+   - clean white background
+------------------------------------ */
+
+@media (max-width: 768px) {
+  /* kill grain + vignette */
+  body::before,
+  body::after {
+    display: none;
+  }
+
+  /* remove any tint influence */
+  :root {
+    --tint-rgb: 0, 0, 0;
+  }
+
+  /* force clean base colors */
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  /* ensure inverted section stays readable */
+  .invert {
+    background: #000;
+    color: #e6ffe6;
+  }
+}
