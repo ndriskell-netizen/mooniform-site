@@ -1,0 +1,526 @@
+@font-face {
+  font-family: "STF Eggleston Mono";
+  src: url("../assets/fonts/STFEgglestonMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --pad: 32px;
+  --padTop: 36px;
+
+  /* video layout knobs */
+  --video-gap: 18px;
+  --video-min: 360px;
+  --video-max: 520px;
+}
+
+* { box-sizing: border-box; }
+
+main {
+  position: relative;
+  z-index: 3;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  min-height: 100vh;
+  font-family: "STF Eggleston Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.origin {
+  position: absolute;
+  top: var(--padTop);
+  right: var(--pad);
+  text-align: right;
+  z-index: 4; /* above grain */
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.origin-texas {
+  width: 24px;
+  height: auto;
+  display: block;
+  opacity: 0.9;
+}
+
+.origin-text {
+  font-size: 12px;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+  opacity: 0.85;
+}
+
+/* Base page */
+body {
+  padding: var(--padTop) var(--pad);
+  background: #fff;
+  color: #000;
+}
+
+h1 {
+  margin: 0 0 14px 0;
+  font-size: clamp(48px, 7vw, 96px);
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+}
+
+p {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+.invert {
+  margin-top: 42px;
+  padding: 44px var(--pad);
+  margin-left: calc(var(--pad) * -1);
+  margin-right: calc(var(--pad) * -1);
+
+  background: #000;
+  color: rgba(0, 255, 0, 0.92);
+  position: relative;
+  z-index: 3; /* above any background layers */
+}
+
+/* kill grain + vignette over the invert section */
+.invert {
+  isolation: isolate;
+}
+
+.invert::before,
+.invert::after {
+  content: "";
+  display: none;
+}
+
+.invert h2 {
+  margin: 0 0 14px 0;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+}
+
+/* --------------------------
+   Invert section layout
+-------------------------- */
+
+.invert-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) 1px minmax(260px, 0.8fr);
+  gap: 22px;
+  align-items: start;
+}
+
+/* thin vertical divider */
+.invert-divider {
+  width: 1px;
+  background: rgba(0, 255, 0, 0.18);
+  align-self: stretch;
+  opacity: 0.9;
+}
+
+/* stack on smaller screens */
+@media (max-width: 860px) {
+  .invert-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .invert-divider {
+    display: none;
+  }
+}
+
+.booking-success {
+  display: inline-block;
+  padding: 10px 12px;
+  border: 1px solid rgba(0, 255, 0, 0.45);
+  border-radius: 0; /* square corners */
+  background: rgba(0, 0, 0, 0.35);
+  color: rgba(0, 255, 0, 0.92);
+  font-size: 14px;
+  letter-spacing: 0.01em;
+}
+
+.booking-error {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 8px 10px;
+  border: 1px solid rgba(0, 255, 0, 0.25);
+  border-radius: 0;
+  opacity: 0.85;
+  font-size: 13px;
+}
+
+/* --------------------------
+   Photo frame (video-like)
+-------------------------- */
+
+.photo-frame {
+  margin: 0;
+  padding: 8px;
+  background: rgba(255,255,255,0.08);
+  border: 2px solid rgba(0,255,0,0.28);
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+}
+
+/* title bar */
+.photo-title {
+  display: block;
+  background: rgba(255,255,255,0.10);
+  padding: 8px;
+  font-size: 14px;
+  font-family: monospace;
+  color: rgba(0, 255, 0, 0.92);
+  border-bottom: 2px solid rgba(0,255,0,0.18);
+  border-radius: 4px 4px 0 0;
+  margin: -8px -8px 8px -8px;
+}
+
+.photo-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: none;
+  border-radius: 2px;
+}
+
+/* make the entire photo frame behave like a link */
+.photo-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.photo-link:hover .photo-frame {
+  border-color: rgba(0, 255, 0, 0.45);
+}
+
+.photo-link:hover .photo-title {
+  background: rgba(255,255,255,0.16);
+}
+
+/* IG link */
+.ig-link {
+  margin: 12px 0 0 0;
+  font-size: 14px;
+  opacity: 0.88;
+}
+
+.shows {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 26px 0;
+}
+
+.shows li {
+  padding: 10px 0;
+  border-top: 1px solid rgba(0,255,0,0.18);
+}
+
+.shows li:first-child {
+  border-top: 1px solid rgba(0,255,0,0.18);
+}
+
+.show-meta {
+  opacity: 0.85;
+  font-size: 14px;
+}
+
+.booking {
+  display: grid;
+  gap: 12px;
+  max-width: 560px;
+  margin-top: 10px;
+}
+
+.booking label {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  opacity: 0.9;
+  text-transform: lowercase;
+}
+
+.booking input,
+.booking textarea {
+  background: rgba(0, 0, 0, 0.4);
+  color: rgba(0, 255, 0, 0.92);
+  border: 1px solid rgba(0,255,0,0.25);
+  border-radius: 6px;
+  padding: 10px;
+  font: inherit;
+}
+
+.booking button {
+  justify-self: start;
+  border-radius: 999px;
+  padding: 10px 14px;
+  border: 1px solid rgba(0,255,0,0.35);
+  background: rgba(0,255,0,0.10);
+  color: rgba(0, 255, 0, 0.92);
+  font: inherit;
+  text-transform: lowercase;
+}
+
+.booking button:hover {
+  background: rgba(0,255,0,0.16);
+}
+
+.small {
+  margin-top: 16px;
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+.invert a {
+  color: rgba(0, 255, 0, 0.92);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* --- grain overlay (CSS-only, no images) --- */
+/* --- film grain overlay (CSS-only, no images) --- */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -30%;
+  pointer-events: none;
+  z-index: 99999;
+
+  /* keep your lime wash as a base layer */
+  background-image:
+    linear-gradient(rgba(0, 255, 0, 0.10), rgba(0, 255, 0, 0.10)),
+
+    /* dense micro-speck layers at different scales */
+    radial-gradient(circle, rgba(0,0,0,0.16) 0 0.55px, transparent 0.65px),
+    radial-gradient(circle, rgba(0,0,0,0.12) 0 0.45px, transparent 0.60px),
+    radial-gradient(circle, rgba(0,0,0,0.10) 0 0.40px, transparent 0.55px),
+    radial-gradient(circle, rgba(255,255,255,0.10) 0 0.40px, transparent 0.55px);
+
+  background-size:
+    auto,
+    18px 18px,
+    26px 22px,
+    34px 28px,
+    42px 36px;
+
+  background-position:
+    0 0,
+    0 0,
+    8px 4px,
+    14px 10px,
+    20px 16px;
+
+  /* crunch it like grain; keep it subtle */
+  filter: contrast(240%) brightness(112%);
+  opacity: 0.95;
+
+  /* faster, jittery movement */
+  animation: grainJitter 1.15s steps(10) infinite;
+}
+
+@keyframes grainJitter {
+  0%   { transform: translate(0, 0); }
+  10%  { transform: translate(-0.8%, -0.4%); }
+  20%  { transform: translate(-1.3%, 0.6%); }
+  30%  { transform: translate(0.7%, -1.0%); }
+  40%  { transform: translate(-0.5%, 1.2%); }
+  50%  { transform: translate(1.1%, -0.3%); }
+  60%  { transform: translate(0.2%, 0.9%); }
+  70%  { transform: translate(-1.0%, 0.1%); }
+  80%  { transform: translate(0.9%, -0.8%); }
+  90%  { transform: translate(-0.4%, 0.5%); }
+  100% { transform: translate(0, 0); }
+}
+
+/* vignette */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(0, 0, 0, 0) 55%,
+    rgba(0, 0, 0, 0.09) 100%
+  );
+
+  mix-blend-mode: multiply;
+  opacity: 0.55;
+}
+
+/* --------------------------
+   Lefty toggle button
+-------------------------- */
+.lefty-toggle {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 100000;
+
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.25);
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(8px);
+
+  font: inherit;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+
+  user-select: none;
+  overflow: visible;
+}
+
+.lefty-toggle:hover {
+  border-color: rgba(0,0,0,0.45);
+}
+
+.lefty-toggle:active {
+  transform: translateY(1px);
+}
+
+.lefty-toggle[aria-pressed="true"] {
+  background: rgba(0, 0, 0, 0.86);
+  color: rgba(255, 255, 255, 0.92);
+  border-color: rgba(0, 0, 0, 0.35);
+}
+
+.lefty-toggle[aria-pressed="true"]:hover {
+  background: rgba(0, 0, 0, 0.92);
+}
+
+/* --------------------------
+   Cursor system (24px)
+-------------------------- */
+
+/* Normal mode cursors */
+html, body {
+  cursor: url("../assets/cursor/cursor-default-24.png") 3 3, auto;
+}
+
+a:hover,
+button:hover,
+.hover-target:hover {
+  cursor: url("../assets/cursor/cursor-hover-24.png") 3 3, auto;
+}
+
+a:active,
+button:active,
+.active-target:active {
+  cursor: url("../assets/cursor/cursor-active-24.png") 3 3, auto;
+}
+
+/* Lefty mode cursors (mirrored PNGs) */
+.lefty html,
+.lefty body {
+  cursor: url("../assets/cursor/cursor-default-lefty-24.png") 21 3, auto;
+}
+
+.lefty a:hover,
+.lefty button:hover,
+.lefty .hover-target:hover {
+  cursor: url("../assets/cursor/cursor-hover-lefty-24.png") 21 3, auto;
+}
+
+.lefty a:active,
+.lefty button:active,
+.lefty .active-target:active {
+  cursor: url("../assets/cursor/cursor-active-lefty-24.png") 21 3, auto;
+}
+
+/* Ensure the lefty button never falls back to system cursors */
+.lefty-toggle {
+  cursor: url("../assets/cursor/cursor-hover-24.png") 3 3, auto;
+}
+
+.lefty-toggle:active {
+  cursor: url("../assets/cursor/cursor-active-24.png") 3 3, auto;
+}
+
+.lefty .lefty-toggle {
+  cursor: url("../assets/cursor/cursor-hover-lefty-24.png") 21 3, auto;
+}
+
+.lefty .lefty-toggle:active {
+  cursor: url("../assets/cursor/cursor-active-lefty-24.png") 21 3, auto;
+}
+
+/* --------------------------
+   Star burst
+-------------------------- */
+.starburst {
+  position: fixed;
+  pointer-events: none;
+  z-index: 100001;
+  font-size: 14px;
+  line-height: 1;
+  will-change: transform, opacity;
+  animation: starPop 420ms ease-out forwards;
+}
+
+@keyframes starPop {
+  0%   { transform: translate(0, 0) scale(0.6); opacity: 0; }
+  10%  { opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(1.15); opacity: 0; }
+}
+
+/* --------------------------
+   Videos (nestled + wrapping)
+-------------------------- */
+
+.video-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--video-gap);
+  align-items: flex-start;
+  justify-content: flex-start;
+  margin-top: 22px;
+}
+
+/* old-school browser frame around each video */
+.video-frame {
+  flex: 1 1 var(--video-min);
+  max-width: var(--video-max);
+  margin: 0;
+
+  padding: 8px;
+  background: #ddd;
+  border: 2px solid #888;
+  border-radius: 6px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* title bar (use your <div class="video-title">…</div> in HTML) */
+.video-title {
+  display: block;
+  background: #eee;
+  padding: 8px;
+  font-size: 14px;
+  font-family: monospace;
+  color: #333;
+  border-bottom: 2px solid #bbb;
+  border-radius: 4px 4px 0 0;
+  margin: -8px -8px 8px -8px; /* makes it flush with the frame edges */
+}
+
+/* responsive iframe */
+.video-frame iframe {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  border: none;
+  border-radius: 2px;
+}
+
