@@ -1,9 +1,27 @@
 (() => {
   const root = document.documentElement;
 
-  /* ----------------------------
-     Star burst logic
-  ---------------------------- */
+  /* =========================================================
+     CONFIG
+  ========================================================= */
+
+  // Shows CSV (Google Sheets published as CSV)
+  const SHOWS_CSV_URL =
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZlY9VQvWzOIfjnYQGtV5OE-I3xljjvpDFI59hKN8iF1u5BPgtfdF5THc6Wt0K4L0jgFXK4TUSqVZX/pub?gid=0&single=true&output=csv";
+
+  // Calendar blackout checker
+  const G_CALENDAR_ID =
+    "4c024075375282e8ba364d46931032db5770ed1439d8474fd6de3a3fb1dcd50a@group.calendar.google.com";
+
+  // IMPORTANT: This must be restricted in Google Cloud:
+  // - Application restriction: HTTP referrers -> https://mooniform.rocks/*
+  // - API restriction: Google Calendar API only
+  const G_API_KEY = "AIzaSyDiX3TZXSmNuaecuunXHBOJ43SJKpgHjKE";
+
+  /* =========================================================
+     STARBURST
+  ========================================================= */
+
   const glyphs = ["✦", "✧", "✹", "✷", "✸", "✺", "⋆", "✴︎"];
 
   function burstAt(x, y) {
@@ -16,63 +34,59 @@
 
       const angle = Math.random() * Math.PI * 2;
       const dist = 18 + Math.random() * 26;
-      const dx = Math.cos(angle) * dist;
-      const dy = Math.sin(angle) * dist;
 
       s.style.left = `${x}px`;
       s.style.top = `${y}px`;
-      s.style.setProperty("--dx", `${dx}px`);
-      s.style.setProperty("--dy", `${dy}px`);
+      s.style.setProperty("--dx", `${Math.cos(angle) * dist}px`);
+      s.style.setProperty("--dy", `${Math.sin(angle) * dist}px`);
 
       document.body.appendChild(s);
       setTimeout(() => s.remove(), 480);
     }
   }
 
-  /* ----------------------------
-     Global click handler
-     (links + buttons only)
-  ---------------------------- */
-  document.addEventListener("click", (e) => {
-    const target = e.target.closest("a, button");
-    if (!target) return;
-    if (target.disabled) return;
-    burstAt(e.clientX, e.clientY);
-  });
+  // Make it accessible to other modules (availability checker)
+  window.mooniformBurstAt = burstAt;
 
-  /* ----------------------------
-     Site tint switcher (green/red/blue)
-     - reads buttons with [data-tint="r,g,b"]
-     - sets CSS variable: --tint-rgb
-     - persists in localStorage
-  ---------------------------- */
+  function setupStarbursts() {
+    document.addEventListener("click", (e) => {
+      const target = e.target.closest("a, button");
+      if (!target) return;
+      if (target.disabled) return;
+
+      burstAt(e.clientX, e.clientY);
+    });
+  }
+
+  /* =========================================================
+     SITE TINT SWITCHER (green/red/blue)
+  ========================================================= */
+
   const TINT_KEY = "mooniform_tint_rgb";
 
   function applyTint(rgbString) {
-    // expects "r,g,b" (no spaces required)
     if (!rgbString || typeof rgbString !== "string") return;
     root.style.setProperty("--tint-rgb", rgbString);
     localStorage.setItem(TINT_KEY, rgbString);
   }
 
-  // Apply saved tint on load
-  const savedTint = localStorage.getItem(TINT_KEY);
-  if (savedTint) applyTint(savedTint);
+  function setupTintSwitcher() {
+    // Apply saved tint on load (desktop only visually; CSS hides grain+tint on mobile)
+    const savedTint = localStorage.getItem(TINT_KEY);
+    if (savedTint) applyTint(savedTint);
 
-  // Wire tint dots
-  const tintButtons = document.querySelectorAll("[data-tint]");
-  tintButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const rgb = btn.getAttribute("data-tint");
-      applyTint(rgb);
+    const tintButtons = document.querySelectorAll("[data-tint]");
+    tintButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const rgb = btn.getAttribute("data-tint");
+        applyTint(rgb);
+      });
     });
-  });
+  }
 
-  /* ----------------------------
-     Upcoming Shows (Google Sheets CSV)
-  ---------------------------- */
-  const SHOWS_CSV_URL =
-    "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZlY9VQvWzOIfjnYQGtV5OE-I3xljjvpDFI59hKN8iF1u5BPgtfdF5THc6Wt0K4L0jgFXK4TUSqVZX/pub?gid=0&single=true&output=csv";
+  /* =========================================================
+     UPCOMING SHOWS (Google Sheets CSV)
+  ========================================================= */
 
   function parseCSV(text) {
     const rows = [];
@@ -143,14 +157,13 @@
       const shows = rows
         .slice(1)
         .map((r) => ({
-          date: iDate >= 0 ? (r[iDate] || "") : "",
-          venue: iVenue >= 0 ? (r[iVenue] || "") : "",
-          city: iCity >= 0 ? (r[iCity] || "") : "",
-          url: iUrl >= 0 ? (r[iUrl] || "") : "",
+          date: iDate >= 0 ? r[iDate] || "" : "",
+          venue: iVenue >= 0 ? r[iVenue] || "" : "",
+          city: iCity >= 0 ? r[iCity] || "" : "",
+          url: iUrl >= 0 ? r[iUrl] || "" : "",
         }))
         .filter((s) => s.date || s.venue || s.city);
 
-      // Sort by parseable date; unknown dates last
       shows.sort((a, b) => {
         const ad = Date.parse(a.date + "T12:00:00");
         const bd = Date.parse(b.date + "T12:00:00");
@@ -172,7 +185,7 @@
       el.innerHTML = shows
         .map((s) => {
           const d = Date.parse(s.date + "T12:00:00");
-          const pretty = !isNaN(d) ? fmt.format(new Date(d)) : (s.date || "TBD");
+          const pretty = !isNaN(d) ? fmt.format(new Date(d)) : s.date || "TBD";
 
           const venue = s.venue || "TBD";
           const city = s.city ? ` — ${s.city}` : "";
@@ -195,23 +208,22 @@
     }
   }
 
-  loadShowsFromSheet();
+  /* =========================================================
+     BOOKING FORM (Formspree) — NO REDIRECT
+  ========================================================= */
 
-  /* ----------------------------
-     Booking form (Formspree) — no redirect
-     Replaces submit button with success message box
-  ---------------------------- */
   function setupBookingForm() {
     const form = document.getElementById("bookingForm");
     if (!form) return;
 
     const submitWrap =
-      form.querySelector(".booking-submit") || form.querySelector("button")?.parentElement;
+      form.querySelector(".booking-submit") ||
+      document.getElementById("bookingSubmit") ||
+      form.querySelector('button[type="submit"]')?.parentElement;
 
     const submitBtn = form.querySelector('button[type="submit"]');
     if (!submitBtn) return;
 
-    // Make sure we don't double-bind if you hot reload
     if (form.dataset.bound === "1") return;
     form.dataset.bound = "1";
 
@@ -237,7 +249,6 @@
 
         if (!res.ok) throw new Error("Form submit failed");
 
-        // Success UI: swap button area for your message
         const box = document.createElement("div");
         box.className = "booking-success";
         box.textContent = "Thanks, we've received your request!";
@@ -245,18 +256,14 @@
         if (submitWrap) {
           submitWrap.replaceWith(box);
         } else {
-          // fallback: replace button itself
           submitBtn.replaceWith(box);
         }
 
-        // optional: clear inputs, keep it feeling clean
         form.reset();
       } catch (err) {
-        // Restore button
         submitBtn.disabled = false;
         submitBtn.textContent = "send";
 
-        // inline error (subtle)
         const msg = document.createElement("span");
         msg.className = "booking-error";
         msg.textContent = "Hmm—something went wrong. Try again?";
@@ -266,5 +273,99 @@
     });
   }
 
-  setupBookingForm();
+  /* =========================================================
+     AVAILABILITY CHECKER (Google Calendar)
+     Expects elements:
+       #availDate, #availCheck, #availResult
+  ========================================================= */
+
+  function setupAvailabilityUI() {
+    const dateEl = document.getElementById("availDate");
+    const btnEl = document.getElementById("availCheck");
+    const outEl = document.getElementById("availResult");
+
+    // If you haven’t added the availability block to HTML yet,
+    // this simply does nothing (no errors).
+    if (!dateEl || !btnEl || !outEl) return;
+
+    const pad = (n) => String(n).padStart(2, "0");
+    const today = new Date();
+    const min = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+    dateEl.min = min;
+
+    const render = (html) => (outEl.innerHTML = html);
+
+    async function check() {
+      const val = dateEl.value;
+
+      if (!val) {
+        render(`<span class="ok">pick a date first.</span>`);
+        return;
+      }
+
+      if (!G_API_KEY) {
+        render(`<span class="no">availability checker isn’t configured yet.</span>`);
+        return;
+      }
+
+      const [yy, mm, dd] = val.split("-").map(Number);
+
+// Build a neutral UTC range for the selected local day
+const timeMin = new Date(Date.UTC(yy, mm - 1, dd, 0, 0, 0)).toISOString();
+const timeMax = new Date(Date.UTC(yy, mm - 1, dd + 1, 0, 0, 0)).toISOString();
+
+      render(`<span class="ok">checking…</span>`);
+
+      try {
+        const url =
+          `https://www.googleapis.com/calendar/v3/calendars/` +
+          encodeURIComponent(G_CALENDAR_ID) +
+          `/events?key=${encodeURIComponent(G_API_KEY)}` +
+          `&timeMin=${encodeURIComponent(timeMin)}` +
+          `&timeMax=${encodeURIComponent(timeMax)}` +
+          `&timeZone=${encodeURIComponent("America/Chicago")}` +
+`&singleEvents=true&orderBy=startTime&maxResults=10`;
+
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) throw new Error("Calendar fetch failed");
+
+        const data = await res.json();
+        const count = Array.isArray(data.items) ? data.items.length : 0;
+
+        if (count === 0) {
+          render(`<span class="ok">looks open on that date.</span>`);
+        } else {
+          render(`<span class="no">that date appears blacked out.</span>`);
+        }
+      } catch (err) {
+        render(`<span class="no">couldn’t check availability right now.</span>`);
+      }
+    }
+
+    btnEl.addEventListener("click", (e) => {
+      // keep the site’s click vibe consistent
+      burstAt(e.clientX, e.clientY);
+      check();
+    });
+
+    dateEl.addEventListener("change", check);
+  }
+
+  /* =========================================================
+     INIT (once DOM exists)
+  ========================================================= */
+
+  function init() {
+    setupStarbursts();
+    setupTintSwitcher();
+    loadShowsFromSheet();
+    setupBookingForm();
+    setupAvailabilityUI();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
 })();
