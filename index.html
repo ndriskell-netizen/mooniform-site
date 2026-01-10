@@ -10,79 +10,79 @@
 
   <body>
     <main>
-      <!-- Top-right origin badge -->
-      <div class="origin">
-        <img
-          class="origin-texas"
-          src="assets/img assets/texas.svg"
-          alt=""
-          aria-hidden="true"
-        />
+      <!-- top-right origin badge (decorative) -->
+      <div class="origin" aria-hidden="true">
+        <img class="origin-texas" src="assets/img assets/texas.svg" alt="" />
         <div class="origin-text">A band from Abilene, Texas</div>
       </div>
 
       <h1>Mooniform</h1>
 
-      <p class="listen">
-        listen:
-        <a
-          href="https://music.apple.com/us/artist/mooniform/1576373893"
-          target="_blank"
-          rel="noopener noreferrer"
-          >Apple Music</a
-        >
-        |
-        <a
-          href="PUT_SPOTIFY_LINK_HERE"
-          target="_blank"
-          rel="noopener noreferrer"
-          >Spotify</a
-        >
-      </p>
+      <nav aria-label="Listen links">
+        <p>
+          listen:
+          <a
+            href="https://music.apple.com/us/artist/mooniform/1576373893"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Apple Music</a
+          >
+          |
+          <a
+            href="https://open.spotify.com/artist/1h9iiGnHdpLLRi6Q6KUTof?si=X4N537S7Rum4Iq9XwVaThw"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Spotify</a
+          >
+        </p>
+      </nav>
 
-      <!-- Videos -->
-      <div class="video-group" aria-label="Mooniform videos">
-        <div class="video-frame">
-          <div class="video-title">Mooniform — Coyote</div>
-          <iframe
-            src="https://www.youtube-nocookie.com/embed/PFzAoARvQNw"
-            title="Mooniform — Coyote"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen
-            loading="lazy"
-          ></iframe>
+      <!-- videos -->
+      <section aria-label="Mooniform videos">
+        <div class="video-group">
+          <div class="video-frame">
+            <div class="video-title">Mooniform — Coyote</div>
+            <iframe
+              src="https://www.youtube-nocookie.com/embed/PFzAoARvQNw"
+              title="Mooniform — Coyote"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+              loading="lazy"
+            ></iframe>
+          </div>
+
+          <div class="video-frame">
+            <div class="video-title">Mooniform — Dinosaur Tom</div>
+            <iframe
+              src="https://www.youtube-nocookie.com/embed/tx0gBepL-8g"
+              title="Mooniform — Dinosaur Tom"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+              loading="lazy"
+            ></iframe>
+          </div>
+
+          <div class="video-frame">
+            <div class="video-title">Mooniform — Wave</div>
+            <iframe
+              src="https://www.youtube-nocookie.com/embed/5Q8Gkjfs-ho"
+              title="Mooniform — Wave"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+              loading="lazy"
+            ></iframe>
+          </div>
         </div>
+      </section>
 
-        <div class="video-frame">
-          <div class="video-title">Mooniform — Dinosaur Tom</div>
-          <iframe
-            src="https://www.youtube-nocookie.com/embed/tx0gBepL-8g"
-            title="Mooniform — Dinosaur Tom"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen
-            loading="lazy"
-          ></iframe>
-        </div>
-
-        <div class="video-frame">
-          <div class="video-title">Mooniform — Wave</div>
-          <iframe
-            src="https://www.youtube-nocookie.com/embed/5Q8Gkjfs-ho"
-            title="Mooniform — Wave"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen
-            loading="lazy"
-          ></iframe>
-        </div>
-      </div>
-
-      <!-- Inverted section: Shows + Booking + Instagram -->
+      <!-- bottom inverted section -->
       <section class="invert" id="contact" aria-label="Shows and booking">
         <div class="invert-grid">
-          <!-- LEFT column -->
+          <!-- LEFT -->
           <div class="invert-left">
             <h2>Upcoming Shows</h2>
 
+            <!-- populated by js/main.js from Google Sheets CSV -->
             <ul class="shows" id="showsList" aria-live="polite">
               <li class="show-meta">loading…</li>
             </ul>
@@ -115,13 +115,9 @@
                 <textarea name="message" rows="5" required></textarea>
               </label>
 
-              <input
-                type="hidden"
-                name="_subject"
-                value="Mooniform booking inquiry"
-              />
+              <input type="hidden" name="_subject" value="Mooniform booking inquiry" />
 
-              <div class="booking-submit">
+              <div class="booking-submit" id="bookingSubmit">
                 <button type="submit">send</button>
               </div>
             </form>
@@ -137,21 +133,20 @@
             </p>
           </div>
 
-          <!-- Divider -->
+          <!-- divider -->
           <div class="invert-divider" aria-hidden="true"></div>
 
-          <!-- RIGHT column -->
+          <!-- RIGHT -->
           <div class="invert-right">
             <a
               class="photo-link"
               href="https://www.instagram.com/mooniform/"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Follow @mooniform on Instagram"
+              aria-label="Follow @Mooniform on Instagram"
             >
               <figure class="photo-frame">
                 <div class="photo-title">Follow @Mooniform on Instagram</div>
-
                 <img
                   src="assets/img assets/IMG_0473.jpeg"
                   alt="Mooniform performing live on stage"
@@ -164,15 +159,28 @@
       </section>
     </main>
 
-    <!-- Fixed toggle -->
-    <button
-      class="lefty-toggle"
-      type="button"
-      aria-pressed="false"
-      aria-label="Toggle lefty mode"
-    >
-      lefty
-    </button>
+    <!-- site color switcher -->
+    <div class="color-toggle" role="group" aria-label="Site color">
+      <span class="label">Site color:</span>
+      <button
+        class="dot dot--green"
+        type="button"
+        data-tint="0,255,0"
+        aria-label="Green"
+      ></button>
+      <button
+        class="dot dot--red"
+        type="button"
+        data-tint="255,0,0"
+        aria-label="Red"
+      ></button>
+      <button
+        class="dot dot--blue"
+        type="button"
+        data-tint="0,120,255"
+        aria-label="Blue"
+      ></button>
+    </div>
 
     <script src="js/main.js"></script>
   </body>
