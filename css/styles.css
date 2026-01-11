@@ -36,9 +36,10 @@ body {
   color: #000;
 }
 
+/* IMPORTANT: keep main above grain layer */
 main {
   position: relative;
-  /* IMPORTANT: no z-index here */
+  z-index: 70; /* above vignette (50) + grain (60) */
 }
 
 h1 {
@@ -63,7 +64,7 @@ p {
   top: var(--padTop);
   right: var(--pad);
   text-align: right;
-  z-index: 20; /* above content */
+  z-index: 90; /* above everything in main */
   display: grid;
   justify-items: end;
   gap: 6px;
@@ -164,7 +165,7 @@ p {
   color: rgba(0, 255, 0, 0.92);
 
   position: relative;
-  z-index: 80; /* IMPORTANT: sits above grain layer so grain doesn't show here */
+  z-index: 80; /* above grain */
 }
 
 .invert h2 {
@@ -195,8 +196,8 @@ p {
   opacity: 0.9;
 }
 
-/* stack on smaller screens */
-@media (max-width: 640px) {
+/* stack on smaller screens (unified at 768) */
+@media (max-width: 768px) {
   .invert-grid {
     grid-template-columns: 1fr;
     gap: 18px;
@@ -206,11 +207,33 @@ p {
   }
 }
 
+/* --------------------------
+   Shows list
+-------------------------- */
+.shows {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 26px 0;
+}
+
+.shows li {
+  padding: 10px 0;
+  border-top: 1px solid rgba(0,255,0,0.18);
+}
+
+.show-meta {
+  opacity: 0.85;
+  font-size: 14px;
+}
+
+/* --------------------------
+   Availability checker (single source of truth)
+-------------------------- */
 .availability {
-  margin: 8px 0 18px 0;
+  margin: 10px 0 18px 0;
+  max-width: 560px;
   display: grid;
-  gap: 8px;
-  max-width: 420px;
+  gap: 10px;
 }
 
 .availability-label {
@@ -227,7 +250,7 @@ p {
 
 .availability-row input[type="date"] {
   flex: 1 1 auto;
-  min-width: 180px;
+  min-width: 0;
   background: rgba(0, 0, 0, 0.4);
   color: rgba(0, 255, 0, 0.92);
   border: 1px solid rgba(0,255,0,0.25);
@@ -254,10 +277,11 @@ p {
 .availability-result {
   font-size: 14px;
   opacity: 0.9;
-  min-height: 1.3em;
+  min-height: 1.3em; /* avoids layout jump */
 }
 
-.availability-result .ok {
+.availability-result .ok,
+.availability-result .no {
   display: inline-block;
   padding: 8px 10px;
   border: 1px solid rgba(0,255,0,0.30);
@@ -265,30 +289,13 @@ p {
 }
 
 .availability-result .no {
-  display: inline-block;
-  padding: 8px 10px;
-  border: 1px solid rgba(0,255,0,0.30);
+  border-color: rgba(255,0,0,0.35);
   background: rgba(255,0,0,0.06);
 }
 
-/* shows list */
-.shows {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 26px 0;
-}
-
-.shows li {
-  padding: 10px 0;
-  border-top: 1px solid rgba(0,255,0,0.18);
-}
-
-.show-meta {
-  opacity: 0.85;
-  font-size: 14px;
-}
-
-/* booking form */
+/* --------------------------
+   Booking form
+-------------------------- */
 .booking {
   display: grid;
   gap: 12px;
@@ -339,69 +346,6 @@ p {
   margin-top: 16px;
   font-size: 14px;
   opacity: 0.85;
-}
-
-/* --------------------------
-   Availability checker
--------------------------- */
-
-.availability {
-  margin: 10px 0 18px 0;
-  max-width: 560px;
-  display: grid;
-  gap: 10px;
-}
-
-.availability-label {
-  font-size: 14px;
-  opacity: 0.9;
-  text-transform: lowercase;
-}
-
-.availability-row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.availability-row input[type="date"] {
-  flex: 1 1 auto;
-  min-width: 0;
-  background: rgba(0, 0, 0, 0.4);
-  color: rgba(0, 255, 0, 0.92);
-  border: 1px solid rgba(0,255,0,0.25);
-  border-radius: 6px;
-  padding: 10px;
-  font: inherit;
-}
-
-.availability-row button {
-  flex: 0 0 auto;
-  border-radius: 999px;
-  padding: 10px 14px;
-  border: 1px solid rgba(0,255,0,0.35);
-  background: rgba(0,255,0,0.10);
-  color: rgba(0, 255, 0, 0.92);
-  font: inherit;
-  text-transform: lowercase;
-}
-
-.availability-row button:hover {
-  background: rgba(0,255,0,0.16);
-}
-
-.availability-result {
-  font-size: 14px;
-  opacity: 0.9;
-  min-height: 1.2em; /* avoids layout jump */
-}
-
-.availability-result .ok {
-  opacity: 0.9;
-}
-
-.availability-result .no {
-  opacity: 0.95;
 }
 
 /* booking inline status */
@@ -472,17 +416,13 @@ p {
 
 /* --------------------------
    Film grain overlay (CSS-only)
-   - smaller specks
-   - denser
-   - faster, jittery
-   - tintable via --tint-rgb
 -------------------------- */
 body::before {
   content: "";
   position: fixed;
   inset: -35%;
   pointer-events: none;
-  z-index: 60; /* below .invert (80), above main (10) => grain on top half only */
+  z-index: 60; /* below main (70), below invert (80) */
 
   background-image:
     /* tint wash */
@@ -534,7 +474,7 @@ body::before {
   100% { transform: translate(0, 0); }
 }
 
-/* vignette (kept subtle) */
+/* vignette */
 body::after {
   content: "";
   position: fixed;
@@ -597,7 +537,7 @@ button:active,
 
 /* --------------------------
    Color toggle pill (bottom-right)
-   - dots never squish
+   - uniform padding when collapsed
    - label revealed on hover/focus
 -------------------------- */
 .color-toggle {
@@ -610,8 +550,10 @@ button:active,
   align-items: center;
   gap: 10px;
 
-  padding: 9px 10px;
+  /* uniform padding around dots */
+  padding: 10px;
   border-radius: 999px;
+
   border: 1px solid rgba(0,0,0,0.25);
   background: rgba(255,255,255,0.86);
   backdrop-filter: blur(8px);
@@ -631,6 +573,9 @@ button:active,
   overflow: hidden;
   white-space: nowrap;
 
+  /* makes label feel like it “slides out” without shifting dot padding */
+  margin-right: 2px;
+
   transition: max-width 180ms ease, opacity 180ms ease;
 }
 
@@ -644,7 +589,7 @@ button:active,
 .dot {
   width: 14px;
   height: 14px;
-  flex: 0 0 14px; /* IMPORTANT: prevents squishing */
+  flex: 0 0 14px; /* prevents squishing */
   border-radius: 999px;
   border: 1px solid rgba(0,0,0,0.25);
   padding: 0;
@@ -670,7 +615,6 @@ button:active,
   transform: translateY(1px);
 }
 
-/* nice keyboard focus */
 .dot:focus-visible {
   outline: 2px solid rgba(0,0,0,0.55);
   outline-offset: 2px;
@@ -682,41 +626,35 @@ button:active,
    - no color tint
    - clean white background
 ------------------------------------ */
-
 @media (max-width: 768px) {
-  /* kill grain + vignette */
   body::before,
   body::after {
     display: none;
   }
 
-  /* remove any tint influence */
   :root {
     --tint-rgb: 0, 0, 0;
   }
 
-  /* force clean base colors */
   body {
     background: #fff;
     color: #000;
     padding: 28px 18px;
   }
 
-  /* ensure inverted section stays readable */
   .invert {
     background: #000;
     color: #e6ffe6;
   }
-  /* suppress the color-change FAB */
+
   .color-toggle {
     display: none !important;
   }
 
-   /* hide desktop badge */
   .origin {
     display: none;
   }
-  /* show inline origin line */
+
   .origin-inline {
     display: inline-flex;
   }
