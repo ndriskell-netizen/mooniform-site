@@ -196,7 +196,7 @@ p {
 }
 
 /* stack on smaller screens */
-@media (max-width: 860px) {
+@media (max-width: 640px) {
   .invert-grid {
     grid-template-columns: 1fr;
     gap: 18px;
