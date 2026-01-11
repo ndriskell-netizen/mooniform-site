@@ -205,6 +205,14 @@ p {
   .invert-divider {
     display: none;
   }
+   .player {
+    display: none !important;
+  }
+
+  /* if you added bottom padding/spacer for the player, undo it on mobile */
+  body {
+    padding-bottom: 0 !important;
+  }
 }
 
 /* --------------------------
@@ -783,6 +791,57 @@ button:active,
 }
 
 .player-next:hover{ background: rgba(0,0,0,0.55); }
+
+.player-progress {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  min-width: 120px;
+}
+
+.player-bar {
+  position: relative;
+  width: 100%;
+  height: 10px; /* room for knob */
+}
+
+.player-bar::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  transform: translateY(-50%);
+  background: rgba(var(--tint-rgb), 0.25); /* unplayed */
+  border-radius: 999px;
+}
+
+/* played segment */
+.player-played {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 2px;
+  transform: translateY(-50%);
+  width: calc(var(--p, 0) * 1%);
+  background: rgba(var(--tint-rgb), 0.85); /* brighter */
+  border-radius: 999px;
+}
+
+/* hollow circle “playhead” */
+.player-knob {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--p, 0) * 1%);
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: transparent;
+  border: 2px solid rgba(var(--tint-rgb), 0.85);
+  box-sizing: border-box;
+}
 
 /* Give page content breathing room so dock doesn't cover the bottom */
 body{

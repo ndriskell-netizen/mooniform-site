@@ -13,10 +13,20 @@
   const G_CALENDAR_ID =
     "4c024075375282e8ba364d46931032db5770ed1439d8474fd6de3a3fb1dcd50a@group.calendar.google.com";
 
-  // IMPORTANT: This must be restricted in Google Cloud:
+  // IMPORTANT: Restrict in Google Cloud:
   // - Application restriction: HTTP referrers -> https://mooniform.rocks/*
   // - API restriction: Google Calendar API only
   const G_API_KEY = "AIzaSyDiX3TZXSmNuaecuunXHBOJ43SJKpgHjKE";
+
+  // Mini-player: self-hosted playlist
+  const TRACKS = [
+    {
+      title: "Mooniform — Mole Sauce (Web Exclusive)",
+      src: "assets/audio/mooniform-mole_sauce.mp3",
+    },
+    // { title: "Mooniform — Dinosaur Tom", src: "assets/audio/mooniform-dinosaur-tom.mp3" },
+    // { title: "Mooniform — Wave", src: "assets/audio/mooniform-wave.mp3" },
+  ];
 
   /* =========================================================
      STARBURST
@@ -45,7 +55,7 @@
     }
   }
 
-  // Make it accessible to other modules (availability checker)
+  // Make it accessible to other modules
   window.mooniformBurstAt = burstAt;
 
   function setupStarbursts() {
@@ -71,7 +81,6 @@
   }
 
   function setupTintSwitcher() {
-    // Apply saved tint on load (desktop only visually; CSS hides grain+tint on mobile)
     const savedTint = localStorage.getItem(TINT_KEY);
     if (savedTint) applyTint(savedTint);
 
@@ -230,11 +239,9 @@
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      // UI: disable while sending
       submitBtn.disabled = true;
       submitBtn.textContent = "sending…";
 
-      // clear any previous error
       const oldErr = form.querySelector(".booking-error");
       if (oldErr) oldErr.remove();
 
@@ -253,11 +260,8 @@
         box.className = "booking-success";
         box.textContent = "Thanks, we've received your request!";
 
-        if (submitWrap) {
-          submitWrap.replaceWith(box);
-        } else {
-          submitBtn.replaceWith(box);
-        }
+        if (submitWrap) submitWrap.replaceWith(box);
+        else submitBtn.replaceWith(box);
 
         form.reset();
       } catch (err) {
@@ -275,89 +279,275 @@
 
   /* =========================================================
      AVAILABILITY CHECKER (Google Calendar)
-     Expects elements:
-       #availDate, #availCheck, #availResult
   ========================================================= */
 
   function setupAvailabilityUI() {
     const dateEl = document.getElementById("availDate");
     const btnEl = document.getElementById("availCheck");
     const outEl = document.getElementById("availResult");
-
-    // If you haven’t added the availability block to HTML yet,
-    // this simply does nothing (no errors).
     if (!dateEl || !btnEl || !outEl) return;
 
     const pad = (n) => String(n).padStart(2, "0");
     const today = new Date();
-    const min = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+    const min = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(
+      today.getDate()
+    )}`;
     dateEl.min = min;
 
     const render = (html) => (outEl.innerHTML = html);
 
     async function check() {
-  const val = dateEl.value;
+      const val = dateEl.value;
 
-  if (!val) {
-    render(`<span class="ok">pick a date first.</span>`);
-    return;
-  }
+      if (!val) {
+        render(`<span class="ok">pick a date first.</span>`);
+        return;
+      }
 
-  if (!G_API_KEY) {
-    render(`<span class="no">availability checker isn’t configured yet.</span>`);
-    return;
-  }
+      if (!G_API_KEY) {
+        render(`<span class="no">availability checker isn’t configured yet.</span>`);
+        return;
+      }
 
-  // DST-safe: interpret the selected date in the user's local time,
-  // then query a full "local day" window.
-  const startLocal = new Date(`${val}T00:00:00`);
-  const endLocal = new Date(`${val}T00:00:00`);
-  endLocal.setDate(endLocal.getDate() + 1);
+      const startLocal = new Date(`${val}T00:00:00`);
+      const endLocal = new Date(`${val}T00:00:00`);
+      endLocal.setDate(endLocal.getDate() + 1);
 
-  const timeMin = startLocal.toISOString();
-  const timeMax = endLocal.toISOString();
+      const timeMin = startLocal.toISOString();
+      const timeMax = endLocal.toISOString();
 
-  render(`<span class="ok">checking…</span>`);
+      render(`<span class="ok">checking…</span>`);
 
-  try {
-    const url =
-      `https://www.googleapis.com/calendar/v3/calendars/` +
-      encodeURIComponent(G_CALENDAR_ID) +
-      `/events?key=${encodeURIComponent(G_API_KEY)}` +
-      `&timeMin=${encodeURIComponent(timeMin)}` +
-      `&timeMax=${encodeURIComponent(timeMax)}` +
-      `&timeZone=${encodeURIComponent("America/Chicago")}` +
-      `&singleEvents=true&orderBy=startTime&maxResults=50`;
+      try {
+        const url =
+          `https://www.googleapis.com/calendar/v3/calendars/` +
+          encodeURIComponent(G_CALENDAR_ID) +
+          `/events?key=${encodeURIComponent(G_API_KEY)}` +
+          `&timeMin=${encodeURIComponent(timeMin)}` +
+          `&timeMax=${encodeURIComponent(timeMax)}` +
+          `&timeZone=${encodeURIComponent("America/Chicago")}` +
+          `&singleEvents=true&orderBy=startTime&maxResults=50`;
 
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error("Calendar fetch failed");
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) throw new Error("Calendar fetch failed");
 
-    const data = await res.json();
-    console.log("Avail debug", { val, timeMin, timeMax, items: data.items });
-    const items = Array.isArray(data.items) ? data.items : [];
+        const data = await res.json();
+        const items = Array.isArray(data.items) ? data.items : [];
 
-    // Only treat real blocking events as "booked"
-    const blocking = items.filter(
-      (ev) => ev.status !== "cancelled" && ev.transparency !== "transparent"
-    );
+        const blocking = items.filter(
+          (ev) => ev.status !== "cancelled" && ev.transparency !== "transparent"
+        );
 
-    if (blocking.length === 0) {
-      render(`<span class="ok">looks open on that date.</span>`);
-    } else {
-      render(`<span class="no">that date appears blacked out.</span>`);
+        if (blocking.length === 0) {
+          render(`<span class="ok">looks open on that date.</span>`);
+        } else {
+          render(`<span class="no">that date appears blacked out.</span>`);
+        }
+      } catch (err) {
+        render(`<span class="no">couldn’t check availability right now.</span>`);
+      }
     }
-  } catch (err) {
-    render(`<span class="no">couldn’t check availability right now.</span>`);
-  }
-}
 
     btnEl.addEventListener("click", (e) => {
-      // keep the site’s click vibe consistent
       burstAt(e.clientX, e.clientY);
       check();
     });
 
     dateEl.addEventListener("change", check);
+  }
+
+  /* =========================================================
+     MINI PLAYER DOCK (desktop only)
+     Expects elements:
+       #playerDock, #playerClose, #playerAudio, #playerTrack, #playerMute, #playerNext
+       .player-bar inside dock (scrub target)
+     Progress uses CSS var --p (0..100). Your CSS reads it on .player-dock,
+     so we set it on dock.
+  ========================================================= */
+
+  function setupMiniPlayerDock() {
+    const IS_MOBILE = window.matchMedia("(max-width: 768px)").matches;
+    if (IS_MOBILE) {
+      document.getElementById("playerDock")?.remove();
+      return;
+    }
+
+    const dock = document.getElementById("playerDock");
+    const closeBtn = document.getElementById("playerClose");
+    const audio = document.getElementById("playerAudio");
+    const titleEl = document.getElementById("playerTrack"); // title text span
+    const muteBtn = document.getElementById("playerMute");
+    const nextBtn = document.getElementById("playerNext");
+    if (!dock || !closeBtn || !audio || !titleEl || !muteBtn || !nextBtn) return;
+
+    const bar = dock.querySelector(".player-bar"); // scrub target
+    const DOCK_KEY = "mooniform_player_dock_hidden";
+
+    // Restore hidden state
+    if (localStorage.getItem(DOCK_KEY) === "1") {
+      dock.style.display = "none";
+      return;
+    }
+
+    if (!Array.isArray(TRACKS) || TRACKS.length === 0) {
+      titleEl.textContent = "no tracks configured.";
+      muteBtn.disabled = true;
+      nextBtn.disabled = true;
+      return;
+    }
+
+    let idx = Math.floor(Math.random() * TRACKS.length);
+
+    // ---- progress helpers (dock owns --p) ----
+    function setProgressPct(pct) {
+      const clamped = Math.max(0, Math.min(100, pct));
+      dock.style.setProperty("--p", clamped);
+    }
+
+    function updateProgress() {
+      const dur = audio.duration;
+      if (!dur || !isFinite(dur) || dur <= 0) {
+        setProgressPct(0);
+        return;
+      }
+      setProgressPct((audio.currentTime / dur) * 100);
+    }
+
+    audio.addEventListener("loadedmetadata", updateProgress);
+    audio.addEventListener("durationchange", updateProgress);
+    audio.addEventListener("timeupdate", updateProgress);
+
+    // ---- playback ----
+    function load(i) {
+      const t = TRACKS[i];
+      titleEl.textContent = t.title;
+      audio.src = t.src;
+      audio.load();
+      setProgressPct(0);
+    }
+
+    function next() {
+      idx = (idx + 1) % TRACKS.length;
+      load(idx);
+      if (!audio.muted) audio.play().catch(() => {});
+    }
+
+    // Default muted (autoplay-safe)
+    audio.muted = true;
+    muteBtn.classList.remove("is-live");
+    muteBtn.setAttribute("aria-pressed", "false");
+    muteBtn.setAttribute("aria-label", "Enable sound");
+
+    load(idx);
+
+    // advance on end
+    audio.addEventListener("ended", () => {
+      setProgressPct(0);
+      next();
+    });
+
+    // enable sound + start playback
+    muteBtn.addEventListener("click", async (e) => {
+      if (window.mooniformBurstAt) window.mooniformBurstAt(e.clientX, e.clientY);
+
+      const wasMuted = audio.muted;
+
+      audio.muted = false;
+      muteBtn.classList.add("is-live");
+      muteBtn.setAttribute("aria-pressed", "true");
+      muteBtn.setAttribute("aria-label", "Sound enabled");
+
+      if (wasMuted) {
+        try {
+          await audio.play();
+        } catch (_) {}
+      }
+    });
+
+    nextBtn.addEventListener("click", (e) => {
+      if (window.mooniformBurstAt) window.mooniformBurstAt(e.clientX, e.clientY);
+      next();
+    });
+
+    closeBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (window.mooniformBurstAt) window.mooniformBurstAt(e.clientX, e.clientY);
+
+      dock.style.display = "none";
+      localStorage.setItem(DOCK_KEY, "1");
+      try {
+        audio.pause();
+      } catch (_) {}
+    });
+
+    // ---- scrubbing (click + drag) ----
+    if (bar) {
+      function seekFromClientX(clientX) {
+        const dur = audio.duration;
+        if (!dur || !isFinite(dur) || dur <= 0) return;
+
+        const rect = bar.getBoundingClientRect();
+        const x = clientX - rect.left;
+        const t = Math.max(0, Math.min(1, x / rect.width));
+
+        audio.currentTime = t * dur;
+        updateProgress();
+      }
+
+      // Click-to-seek
+      bar.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        seekFromClientX(e.clientX);
+        if (window.mooniformBurstAt) window.mooniformBurstAt(e.clientX, e.clientY);
+      });
+
+      // Drag-to-scrub (mouse + touch)
+      let scrubbing = false;
+
+      function startScrub(clientX) {
+        scrubbing = true;
+        seekFromClientX(clientX);
+      }
+      function moveScrub(clientX) {
+        if (!scrubbing) return;
+        seekFromClientX(clientX);
+      }
+      function endScrub() {
+        scrubbing = false;
+      }
+
+      bar.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        startScrub(e.clientX);
+      });
+
+      window.addEventListener("mousemove", (e) => moveScrub(e.clientX));
+      window.addEventListener("mouseup", endScrub);
+
+      bar.addEventListener(
+        "touchstart",
+        (e) => {
+          if (!e.touches?.length) return;
+          e.preventDefault();
+          startScrub(e.touches[0].clientX);
+        },
+        { passive: false }
+      );
+
+      window.addEventListener(
+        "touchmove",
+        (e) => {
+          if (!scrubbing || !e.touches?.length) return;
+          e.preventDefault();
+          moveScrub(e.touches[0].clientX);
+        },
+        { passive: false }
+      );
+
+      window.addEventListener("touchend", endScrub);
+    }
   }
 
   /* =========================================================
@@ -379,89 +569,3 @@
     init();
   }
 })();
-
-function setupMiniPlayerDock() {
-  const dock = document.getElementById("playerDock");
-  const closeBtn = document.getElementById("playerClose");
-  const audio = document.getElementById("playerAudio");
-  const trackEl = document.getElementById("playerTrack");
-  const muteBtn = document.getElementById("playerMute");
-  const nextBtn = document.getElementById("playerNext");
-  if (!dock || !closeBtn || !audio || !trackEl || !muteBtn || !nextBtn) return;
-
-  const DOCK_KEY = "mooniform_player_dock_hidden";
-
-  // Restore hidden state
-  if (localStorage.getItem(DOCK_KEY) === "1") {
-    dock.style.display = "none";
-    return;
-  }
-
-  // Your self-hosted playlist
-  const TRACKS = [
-    { title: "Mooniform — Mole Sauce (Web Exclusive)", src: "assets/audio/mooniform-mole_sauce.mp3" },
-   // { title: "Mooniform — Dinosaur Tom", src: "assets/audio/mooniform-dinosaur-tom.mp3" },
-   // { title: "Mooniform — Wave", src: "assets/audio/mooniform-wave.mp3" },
-  ];
-
-  if (!TRACKS.length) {
-    trackEl.textContent = "no tracks configured.";
-    muteBtn.disabled = true;
-    nextBtn.disabled = true;
-    return;
-  }
-
-  let idx = Math.floor(Math.random() * TRACKS.length);
-
-  function load(i) {
-    const t = TRACKS[i];
-    trackEl.textContent = t.title;
-    audio.src = t.src;
-    audio.load();
-  }
-
-  function next() {
-    idx = (idx + 1) % TRACKS.length;
-    load(idx);
-    if (!audio.muted) audio.play().catch(() => {});
-  }
-
-  // Default muted (autoplay-safe)
-  audio.muted = true;
-  muteBtn.classList.remove("is-live");
-  muteBtn.setAttribute("aria-pressed", "false");
-  muteBtn.setAttribute("aria-label", "Enable sound");
-
-  load(idx);
-
-  audio.addEventListener("ended", next);
-
-  muteBtn.addEventListener("click", async (e) => {
-    if (window.mooniformBurstAt) window.mooniformBurstAt(e.clientX, e.clientY);
-
-    const wasMuted = audio.muted;
-    audio.muted = false;
-
-    muteBtn.classList.add("is-live");
-    muteBtn.setAttribute("aria-pressed", "true");
-    muteBtn.setAttribute("aria-label", "Sound enabled");
-
-    if (wasMuted) {
-      try { await audio.play(); } catch (_) {}
-    }
-  });
-
-  nextBtn.addEventListener("click", (e) => {
-    if (window.mooniformBurstAt) window.mooniformBurstAt(e.clientX, e.clientY);
-    next();
-  });
-
-  closeBtn.addEventListener("click", (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  if (window.mooniformBurstAt) window.mooniformBurstAt(e.clientX, e.clientY);
-  dock.style.display = "none";
-  localStorage.setItem(DOCK_KEY, "1");
-  try { audio.pause(); } catch (_) {}
-});
-}
