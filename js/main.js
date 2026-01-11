@@ -296,51 +296,60 @@
     const render = (html) => (outEl.innerHTML = html);
 
     async function check() {
-      const val = dateEl.value;
+  const val = dateEl.value;
 
-      if (!val) {
-        render(`<span class="ok">pick a date first.</span>`);
-        return;
-      }
+  if (!val) {
+    render(`<span class="ok">pick a date first.</span>`);
+    return;
+  }
 
-      if (!G_API_KEY) {
-        render(`<span class="no">availability checker isn’t configured yet.</span>`);
-        return;
-      }
+  if (!G_API_KEY) {
+    render(`<span class="no">availability checker isn’t configured yet.</span>`);
+    return;
+  }
 
-      const [yy, mm, dd] = val.split("-").map(Number);
+  // DST-safe: interpret the selected date in the user's local time,
+  // then query a full "local day" window.
+  const startLocal = new Date(`${val}T00:00:00`);
+  const endLocal = new Date(`${val}T00:00:00`);
+  endLocal.setDate(endLocal.getDate() + 1);
 
-// Build a neutral UTC range for the selected local day
-const timeMin = new Date(Date.UTC(yy, mm - 1, dd, 0, 0, 0)).toISOString();
-const timeMax = new Date(Date.UTC(yy, mm - 1, dd + 1, 0, 0, 0)).toISOString();
+  const timeMin = startLocal.toISOString();
+  const timeMax = endLocal.toISOString();
 
-      render(`<span class="ok">checking…</span>`);
+  render(`<span class="ok">checking…</span>`);
 
-      try {
-        const url =
-          `https://www.googleapis.com/calendar/v3/calendars/` +
-          encodeURIComponent(G_CALENDAR_ID) +
-          `/events?key=${encodeURIComponent(G_API_KEY)}` +
-          `&timeMin=${encodeURIComponent(timeMin)}` +
-          `&timeMax=${encodeURIComponent(timeMax)}` +
-          `&timeZone=${encodeURIComponent("America/Chicago")}` +
-`&singleEvents=true&orderBy=startTime&maxResults=10`;
+  try {
+    const url =
+      `https://www.googleapis.com/calendar/v3/calendars/` +
+      encodeURIComponent(G_CALENDAR_ID) +
+      `/events?key=${encodeURIComponent(G_API_KEY)}` +
+      `&timeMin=${encodeURIComponent(timeMin)}` +
+      `&timeMax=${encodeURIComponent(timeMax)}` +
+      `&timeZone=${encodeURIComponent("America/Chicago")}` +
+      `&singleEvents=true&orderBy=startTime&maxResults=50`;
 
-        const res = await fetch(url, { cache: "no-store" });
-        if (!res.ok) throw new Error("Calendar fetch failed");
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error("Calendar fetch failed");
 
-        const data = await res.json();
-        const count = Array.isArray(data.items) ? data.items.length : 0;
+    const data = await res.json();
+    console.log("Avail debug", { val, timeMin, timeMax, items: data.items });
+    const items = Array.isArray(data.items) ? data.items : [];
 
-        if (count === 0) {
-          render(`<span class="ok">looks open on that date.</span>`);
-        } else {
-          render(`<span class="no">that date appears blacked out.</span>`);
-        }
-      } catch (err) {
-        render(`<span class="no">couldn’t check availability right now.</span>`);
-      }
+    // Only treat real blocking events as "booked"
+    const blocking = items.filter(
+      (ev) => ev.status !== "cancelled" && ev.transparency !== "transparent"
+    );
+
+    if (blocking.length === 0) {
+      render(`<span class="ok">looks open on that date.</span>`);
+    } else {
+      render(`<span class="no">that date appears blacked out.</span>`);
     }
+  } catch (err) {
+    render(`<span class="no">couldn’t check availability right now.</span>`);
+  }
+}
 
     btnEl.addEventListener("click", (e) => {
       // keep the site’s click vibe consistent
