@@ -42,7 +42,7 @@ body {
   z-index: 1;
 
   padding: var(--padTop) var(--pad);
-  padding-bottom: calc(var(--padTop) + var(--dock-safe)); /* scroll room above dock */
+  padding-bottom: calc(var(--dock-safe) + 24px);
   background: #fff;
   color: #000;
 }
@@ -1043,5 +1043,25 @@ button:active,
     font-size: 12px;
     letter-spacing: 0.01em;
     opacity: 0.9;
+  }
+}
+
+.player-dock{
+  bottom: calc(14px + env(safe-area-inset-bottom));
+}
+
+@media (max-width: 768px){
+  .player-dock{
+    bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+}
+
+.site-footer{
+  padding-bottom: calc(18px + var(--dock-safe) + env(safe-area-inset-bottom));
+}
+
+@media (max-width: 768px){
+  .site-footer{
+    padding-bottom: calc(16px + var(--dock-safe) + env(safe-area-inset-bottom));
   }
 }
