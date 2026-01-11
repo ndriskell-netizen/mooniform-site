@@ -730,6 +730,14 @@
   }
 }
 
+function setupFooterCopyright() {
+  const el = document.getElementById("copyright");
+  if (!el) return;
+
+  const year = new Date().getFullYear();
+  el.textContent = `© ${year} Mooniform. All rights reserved.`;
+}
+
   /* =========================================================
      INIT (once DOM exists)
   ========================================================= */
@@ -741,6 +749,7 @@
     setupBookingForm();
     setupAvailabilityUI();
     setupMiniPlayerDock();
+    setupFooterCopyright();
   }
 
   if (document.readyState === "loading") {
