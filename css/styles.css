@@ -36,6 +36,10 @@ body {
   color: #000;
 }
 
+html {
+  background: #000;
+}
+
 /* IMPORTANT: keep main above grain layer */
 main {
   position: relative;
