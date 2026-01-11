@@ -378,3 +378,89 @@
     init();
   }
 })();
+
+function setupMiniPlayerDock() {
+  const dock = document.getElementById("playerDock");
+  const closeBtn = document.getElementById("playerClose");
+  const audio = document.getElementById("playerAudio");
+  const trackEl = document.getElementById("playerTrack");
+  const muteBtn = document.getElementById("playerMute");
+  const nextBtn = document.getElementById("playerNext");
+  if (!dock || !closeBtn || !audio || !trackEl || !muteBtn || !nextBtn) return;
+
+  const DOCK_KEY = "mooniform_player_dock_hidden";
+
+  // Restore hidden state
+  if (localStorage.getItem(DOCK_KEY) === "1") {
+    dock.style.display = "none";
+    return;
+  }
+
+  // Your self-hosted playlist
+  const TRACKS = [
+    { title: "Mooniform — Mole Sauce (Web Exclusive)", src: "assets/audio/mooniform-mole_sauce.mp3" },
+   // { title: "Mooniform — Dinosaur Tom", src: "assets/audio/mooniform-dinosaur-tom.mp3" },
+   // { title: "Mooniform — Wave", src: "assets/audio/mooniform-wave.mp3" },
+  ];
+
+  if (!TRACKS.length) {
+    trackEl.textContent = "no tracks configured.";
+    muteBtn.disabled = true;
+    nextBtn.disabled = true;
+    return;
+  }
+
+  let idx = Math.floor(Math.random() * TRACKS.length);
+
+  function load(i) {
+    const t = TRACKS[i];
+    trackEl.textContent = t.title;
+    audio.src = t.src;
+    audio.load();
+  }
+
+  function next() {
+    idx = (idx + 1) % TRACKS.length;
+    load(idx);
+    if (!audio.muted) audio.play().catch(() => {});
+  }
+
+  // Default muted (autoplay-safe)
+  audio.muted = true;
+  muteBtn.classList.remove("is-live");
+  muteBtn.setAttribute("aria-pressed", "false");
+  muteBtn.setAttribute("aria-label", "Enable sound");
+
+  load(idx);
+
+  audio.addEventListener("ended", next);
+
+  muteBtn.addEventListener("click", async (e) => {
+    if (window.mooniformBurstAt) window.mooniformBurstAt(e.clientX, e.clientY);
+
+    const wasMuted = audio.muted;
+    audio.muted = false;
+
+    muteBtn.classList.add("is-live");
+    muteBtn.setAttribute("aria-pressed", "true");
+    muteBtn.setAttribute("aria-label", "Sound enabled");
+
+    if (wasMuted) {
+      try { await audio.play(); } catch (_) {}
+    }
+  });
+
+  nextBtn.addEventListener("click", (e) => {
+    if (window.mooniformBurstAt) window.mooniformBurstAt(e.clientX, e.clientY);
+    next();
+  });
+
+  closeBtn.addEventListener("click", (e) => {
+    if (window.mooniformBurstAt) window.mooniformBurstAt(e.clientX, e.clientY);
+    dock.style.display = "none";
+    localStorage.setItem(DOCK_KEY, "1");
+
+    // Optional: stop audio if user dismisses
+    try { audio.pause(); } catch (_) {}
+  });
+}
