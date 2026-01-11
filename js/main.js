@@ -142,7 +142,7 @@
       const rows = parseCSV(csv);
 
       if (rows.length < 2) {
-        el.innerHTML = `<li><div class="show-meta">no shows posted yet.</div></li>`;
+        el.innerHTML = `<li><div class="show-meta">no shows currently posted.</div></li>`;
         return;
       }
 
