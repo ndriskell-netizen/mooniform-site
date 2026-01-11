@@ -32,7 +32,7 @@ html, body {
 /* Base page */
 body {
   padding: var(--padTop) var(--pad);
-  background: ##fff;
+  background: #fff;
   color: #000;
 }
 
