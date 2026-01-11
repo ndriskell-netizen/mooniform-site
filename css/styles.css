@@ -205,14 +205,6 @@ p {
   .invert-divider {
     display: none;
   }
-   .player {
-    display: none !important;
-  }
-
-  /* if you added bottom padding/spacer for the player, undo it on mobile */
-  body {
-    padding-bottom: 0 !important;
-  }
 }
 
 /* --------------------------
@@ -545,8 +537,6 @@ button:active,
 
 /* --------------------------
    Color toggle pill (bottom-right)
-   - uniform padding when collapsed
-   - label revealed on hover/focus
 -------------------------- */
 .color-toggle {
   position: fixed;
@@ -581,13 +571,10 @@ button:active,
   overflow: hidden;
   white-space: nowrap;
 
-  /* makes label feel like it “slides out” without shifting dot padding */
   margin-right: 2px;
-
   transition: max-width 180ms ease, opacity 180ms ease;
 }
 
-/* reveal label on hover or keyboard focus */
 .color-toggle:hover .label,
 .color-toggle:focus-within .label {
   max-width: 140px;
@@ -597,7 +584,7 @@ button:active,
 .dot {
   width: 14px;
   height: 14px;
-  flex: 0 0 14px; /* prevents squishing */
+  flex: 0 0 14px;
   border-radius: 999px;
   border: 1px solid rgba(0,0,0,0.25);
   padding: 0;
@@ -630,9 +617,6 @@ button:active,
 
 /* ------------------------------------
    Mobile: simplify visuals
-   - no grain
-   - no color tint
-   - clean white background
 ------------------------------------ */
 @media (max-width: 768px) {
   body::before,
@@ -669,19 +653,19 @@ button:active,
 }
 
 /* =========================================
-   Floating mini-player footer
+   Floating mini-player footer (finalized)
 ========================================= */
+
 .player-dock{
   position: fixed;
   left: 14px;
   right: 14px;
   bottom: 14px;
-  z-index: 100050; /* above grain (60), below starburst (100001), near FAB */
+  z-index: 100050;
 
   border: 1px solid rgba(var(--tint-rgb), 0.35);
   border-radius: 10px;
 
-  /* dark base + tint wash */
   background:
     linear-gradient(rgba(var(--tint-rgb), 0.14), rgba(var(--tint-rgb), 0.14)),
     rgba(0,0,0,0.86);
@@ -689,8 +673,7 @@ button:active,
   backdrop-filter: blur(10px);
   box-shadow: 0 10px 22px rgba(0,0,0,0.45);
 
-  /* keep it shallow */
-  padding: 10px 12px 10px 12px;
+  padding: 10px 12px;
 }
 
 .player-dock-inner{
@@ -698,19 +681,22 @@ button:active,
   align-items: center;
   gap: 10px;
   min-height: 34px;
-   /* ✅ reserve space so "×" never overlaps Next */
+
+  /* reserve space for the top-right dismiss X (desktop only) */
   padding-right: 34px;
+  position: relative;
 }
 
+/* Dismiss X (desktop) */
 .player-close{
   position: absolute;
   top: 8px;
   right: 8px;
-  z-index: 2;
+  z-index: 5;
 
   width: 26px;
   height: 26px;
-  border-radius: 0;            /* square */
+  border-radius: 0;
   border: 1px solid rgba(var(--tint-rgb), 0.45);
   background: rgba(0,0,0,0.55);
   color: rgba(255,255,255,0.85);
@@ -729,7 +715,15 @@ button:active,
   border-color: rgba(var(--tint-rgb), 0.7);
 }
 
-.player-mute{
+/* Transport buttons */
+.player-transport{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.player-btn{
   width: 34px;
   height: 34px;
   border-radius: 999px;
@@ -741,16 +735,21 @@ button:active,
   align-items: center;
   justify-content: center;
   padding: 0;
-  flex: 0 0 auto;
 }
 
-.player-mute:hover{ background: rgba(0,0,0,0.55); }
+.player-btn:hover{ background: rgba(0,0,0,0.55); }
 
-.player-mute .icon{ width: 18px; height: 18px; }
-.player-mute .icon-live{ display: none; }
-.player-mute.is-live .icon-muted{ display: none; }
-.player-mute.is-live .icon-live{ display: block; }
+.player-btn .icon{
+  width: 18px;
+  height: 18px;
+}
 
+/* Play/Pause icon swap via .is-playing on #playerDock */
+#playerPlay .icon-pause{ display: none; }
+.player-dock.is-playing #playerPlay .icon-play{ display: none; }
+.player-dock.is-playing #playerPlay .icon-pause{ display: block; }
+
+/* Now Playing text */
 .player-text{
   display: flex;
   align-items: baseline;
@@ -772,40 +771,53 @@ button:active,
   opacity: 0.95;
 }
 
+/* Track title wrapper (JS will manage marquee only when overset) */
 .player-track{
   min-width: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.player-next{
-  border-radius: 999px;
-  border: 1px solid rgba(var(--tint-rgb), 0.45);
-  background: rgba(0,0,0,0.35);
-  color: rgba(var(--tint-rgb), 0.95);
-  padding: 7px 10px;
-  font: inherit;
-  text-transform: lowercase;
+/* inner span that animates */
+.player-track .track-marquee{
+  display: inline-block;
   white-space: nowrap;
+  padding-right: 28px;
+  will-change: transform;
+  transform: translateX(0);
 }
 
-.player-next:hover{ background: rgba(0,0,0,0.55); }
+/* only animate when JS adds .is-marquee and sets vars */
+.player-track.is-marquee .track-marquee{
+  animation: trackMarquee var(--marquee-dur, 10s) ease-in-out infinite alternate;
+}
 
-.player-progress {
+@keyframes trackMarquee{
+  from { transform: translateX(0); }
+  to   { transform: translateX(calc(-1 * var(--marquee-dist, 0px))); }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .player-track.is-marquee .track-marquee{ animation: none; }
+}
+
+/* Progress (scrubbable) */
+.player-progress{
   flex: 1 1 auto;
   display: flex;
   align-items: center;
-  min-width: 120px;
+  min-width: 140px;
+  max-width: 520px;
 }
 
-.player-bar {
+.player-bar{
   position: relative;
   width: 100%;
-  height: 10px; /* room for knob */
+  height: 14px;
+  cursor: pointer;
 }
 
-.player-bar::before {
+.player-bar::before{
   content: "";
   position: absolute;
   left: 0;
@@ -813,24 +825,22 @@ button:active,
   top: 50%;
   height: 2px;
   transform: translateY(-50%);
-  background: rgba(var(--tint-rgb), 0.25); /* unplayed */
+  background: rgba(var(--tint-rgb), 0.25);
   border-radius: 999px;
 }
 
-/* played segment */
-.player-played {
+.player-played{
   position: absolute;
   left: 0;
   top: 50%;
   height: 2px;
   transform: translateY(-50%);
   width: calc(var(--p, 0) * 1%);
-  background: rgba(var(--tint-rgb), 0.85); /* brighter */
+  background: rgba(var(--tint-rgb), 0.85);
   border-radius: 999px;
 }
 
-/* hollow circle “playhead” */
-.player-knob {
+.player-knob{
   position: absolute;
   top: 50%;
   left: calc(var(--p, 0) * 1%);
@@ -841,26 +851,160 @@ button:active,
   background: transparent;
   border: 2px solid rgba(var(--tint-rgb), 0.85);
   box-sizing: border-box;
+  pointer-events: none;
 }
 
-/* Give page content breathing room so dock doesn't cover the bottom */
+/* Menu button (desktop only) */
+.player-menu{
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--tint-rgb), 0.45);
+  background: rgba(0,0,0,0.35);
+  color: rgba(var(--tint-rgb), 0.95);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex: 0 0 auto;
+
+  position: relative;
+  z-index: 3;
+}
+
+.player-menu:hover{ background: rgba(0,0,0,0.55); }
+
+.player-menu .icon{ width: 18px; height: 18px; }
+
+.menu-desktop{ display: inline-flex; }
+.menu-mobile{ display: none; }
+
+/* Tray: desktop popover that blooms upward (NO extra circle/connector) */
+.player-tray{
+  position: absolute;
+  right: 12px;
+  bottom: calc(100% + 10px);
+
+  width: max-content;
+  min-width: 260px;
+  max-width: min(520px, calc(100vw - 28px));
+
+  border: 1px solid rgba(var(--tint-rgb), 0.45);
+  border-radius: 12px;
+
+  background:
+    linear-gradient(rgba(var(--tint-rgb), 0.10), rgba(var(--tint-rgb), 0.10)),
+    rgba(0,0,0,0.92);
+
+  box-shadow: 0 16px 30px rgba(0,0,0,0.55);
+  backdrop-filter: blur(10px);
+
+  opacity: 0;
+  transform: translateY(8px) scale(0.98);
+  pointer-events: none;
+
+  z-index: 2;
+
+  transition: opacity 140ms ease, transform 180ms ease;
+}
+
+.player-dock.is-tray-open .player-tray{
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+/* Optional: emphasize menu when open */
+.player-dock.is-tray-open .player-menu{
+  background: rgba(0,0,0,0.65);
+  border-color: rgba(var(--tint-rgb), 0.75);
+}
+
+.player-tray-inner{
+  padding: 10px;
+  display: grid;
+  gap: 6px;
+  max-height: 260px;
+  overflow: auto;
+}
+
+/* Track list items (buttons emitted by JS) */
+.player-tray-inner .track-item{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 8px 10px;
+  border-radius: 8px;
+
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.04);
+
+  color: rgba(255,255,255,0.90);
+  font: inherit;
+  text-align: left;
+}
+
+.player-tray-inner .track-item:hover{
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.16);
+}
+
+.player-tray-inner .track-item.is-current{
+  border-color: rgba(var(--tint-rgb), 0.65);
+  color: rgba(var(--tint-rgb), 0.95);
+  background: rgba(var(--tint-rgb), 0.10);
+}
+
+/* Give page content breathing room so dock doesn't cover bottom */
 body{
-  padding-bottom: calc(14px + 14px + 56px);
+  padding-bottom: calc(14px + 14px + 64px);
 }
 
-/* Mobile: a hair tighter */
+.player-spacer{
+  height: 96px;
+}
+
+/* ------------------------------------
+   Mobile player behavior (simplified)
+   - remove caret/menu + tray entirely
+   - remove dismiss X entirely
+   - reclaim space for title + progress
+------------------------------------ */
 @media (max-width: 768px){
   .player-dock{
     left: 10px;
     right: 10px;
     bottom: 10px;
+    padding: 10px 10px;
   }
-  body{
-    padding-bottom: calc(10px + 10px + 56px);
-  }
-}
 
-/* Extra scroll room so fixed player never covers content */
-.player-spacer{
-  height: 88px; /* tune if you change dock height */
+  .player-dock-inner{
+    padding-right: 0; /* no X on mobile */
+  }
+
+  #playerClose,
+  #playerMenu,
+  #playerTray{
+    display: none !important;
+  }
+
+  .player-text{
+    font-size: 13px;
+  }
+
+  .player-progress{
+    min-width: 120px;
+    max-width: 360px;
+  }
+
+  body{
+    padding-bottom: calc(10px + 10px + 72px);
+  }
+
+  .player-spacer{
+    height: 104px;
+  }
 }

@@ -357,118 +357,366 @@
   }
 
   /* =========================================================
-     MINI PLAYER DOCK (desktop only)
+     MINI PLAYER DOCK (desktop + mobile)
      Expects elements:
-       #playerDock, #playerClose, #playerAudio, #playerTrack, #playerMute, #playerNext
-       .player-bar inside dock (scrub target)
-     Progress uses CSS var --p (0..100). Your CSS reads it on .player-dock,
-     so we set it on dock.
+       #playerDock, #playerClose, #playerAudio
+       #playerTrack (title text)
+       #playerPrev, #playerPlay, #playerNext
+       #playerMenu (hamburger/caret)
+       #playerBar (scrub target)
+       #playerTray, #playerTrackList (tray + list container)
+     Progress uses CSS var --p on #playerDock (0..100).
   ========================================================= */
 
   function setupMiniPlayerDock() {
-    const IS_MOBILE = window.matchMedia("(max-width: 768px)").matches;
-    if (IS_MOBILE) {
-      document.getElementById("playerDock")?.remove();
-      return;
-    }
+  const dock = document.getElementById("playerDock");
+  if (!dock) return;
 
-    const dock = document.getElementById("playerDock");
-    const closeBtn = document.getElementById("playerClose");
-    const audio = document.getElementById("playerAudio");
-    const titleEl = document.getElementById("playerTrack"); // title text span
-    const muteBtn = document.getElementById("playerMute");
-    const nextBtn = document.getElementById("playerNext");
-    if (!dock || !closeBtn || !audio || !titleEl || !muteBtn || !nextBtn) return;
+  const audio = document.getElementById("playerAudio");
+  const titleEl = document.getElementById("playerTrack");
 
-    const bar = dock.querySelector(".player-bar"); // scrub target
-    const DOCK_KEY = "mooniform_player_dock_hidden";
+  const prevBtn = document.getElementById("playerPrev");
+  const playBtn = document.getElementById("playerPlay");
+  const nextBtn = document.getElementById("playerNext");
 
-    // Restore hidden state
-    if (localStorage.getItem(DOCK_KEY) === "1") {
-      dock.style.display = "none";
-      return;
-    }
+  const bar = document.getElementById("playerBar");
 
-    if (!Array.isArray(TRACKS) || TRACKS.length === 0) {
-      titleEl.textContent = "no tracks configured.";
-      muteBtn.disabled = true;
-      nextBtn.disabled = true;
-      return;
-    }
+  // Desktop-only controls (CSS hides them on mobile)
+  const closeBtn = document.getElementById("playerClose");
+  const menuBtn = document.getElementById("playerMenu");
+  const tray = document.getElementById("playerTray");
+  const listEl = document.getElementById("playerTrackList");
 
-    let idx = Math.floor(Math.random() * TRACKS.length);
+  if (!audio || !titleEl || !prevBtn || !playBtn || !nextBtn || !bar) return;
 
-    // ---- progress helpers (dock owns --p) ----
-    function setProgressPct(pct) {
-      const clamped = Math.max(0, Math.min(100, pct));
-      dock.style.setProperty("--p", clamped);
-    }
+  const DOCK_KEY = "mooniform_player_dock_hidden";
+  const TRACK_KEY = "mooniform_player_track_index";
 
-    function updateProgress() {
-      const dur = audio.duration;
-      if (!dur || !isFinite(dur) || dur <= 0) {
-        setProgressPct(0);
-        return;
-      }
-      setProgressPct((audio.currentTime / dur) * 100);
-    }
+  const isMobile = () => window.matchMedia("(max-width: 768px)").matches;
 
-    audio.addEventListener("loadedmetadata", updateProgress);
-    audio.addEventListener("durationchange", updateProgress);
-    audio.addEventListener("timeupdate", updateProgress);
+  // Restore hidden state
+  if (localStorage.getItem(DOCK_KEY) === "1") {
+    dock.style.display = "none";
+    return;
+  }
 
-    // ---- playback ----
-    function load(i) {
-      const t = TRACKS[i];
-      titleEl.textContent = t.title;
-      audio.src = t.src;
-      audio.load();
+  if (!Array.isArray(TRACKS) || TRACKS.length === 0) {
+    titleEl.textContent = "no tracks configured.";
+    prevBtn.disabled = true;
+    playBtn.disabled = true;
+    nextBtn.disabled = true;
+    if (menuBtn) menuBtn.disabled = true;
+    if (closeBtn) closeBtn.disabled = true;
+    return;
+  }
+
+  // ---- state ----
+  let idx = (() => {
+    const saved = Number(localStorage.getItem(TRACK_KEY));
+    if (Number.isFinite(saved) && saved >= 0 && saved < TRACKS.length) return saved;
+    return Math.floor(Math.random() * TRACKS.length);
+  })();
+
+  // ---- progress helpers ----
+  function setProgressPct(pct) {
+    const clamped = Math.max(0, Math.min(100, pct));
+    dock.style.setProperty("--p", clamped);
+    bar.setAttribute("aria-valuenow", String(Math.round(clamped)));
+  }
+
+  function updateProgress() {
+    const dur = audio.duration;
+    if (!dur || !isFinite(dur) || dur <= 0) {
       setProgressPct(0);
+      return;
+    }
+    setProgressPct((audio.currentTime / dur) * 100);
+  }
+
+  audio.addEventListener("loadedmetadata", updateProgress);
+  audio.addEventListener("durationchange", updateProgress);
+  audio.addEventListener("timeupdate", updateProgress);
+
+  // ---- playing state / UI sync ----
+  function setPlayingUI(isPlaying) {
+    dock.classList.toggle("is-playing", !!isPlaying);
+    playBtn.setAttribute("aria-pressed", isPlaying ? "true" : "false");
+    playBtn.setAttribute("aria-label", isPlaying ? "Pause" : "Play");
+  }
+
+  audio.addEventListener("play", () => setPlayingUI(true));
+  audio.addEventListener("pause", () => setPlayingUI(false));
+
+  // =========================================================
+  // Marquee (matches your CSS: .player-track > .track-marquee)
+  // - JS adds .is-marquee to #playerTrack when overset
+  // - JS sets --marquee-dist (px) and --marquee-dur (time string, e.g. "10s")
+  // =========================================================
+  function ensureMarqueeSpan() {
+    let span = titleEl.querySelector(".track-marquee");
+    if (!span) {
+      span = document.createElement("span");
+      span.className = "track-marquee";
+      // move any existing text into span
+      const existing = titleEl.textContent || "";
+      titleEl.textContent = "";
+      span.textContent = existing;
+      titleEl.appendChild(span);
+    }
+    return span;
+  }
+
+  function applyMarquee() {
+    const span = ensureMarqueeSpan();
+
+    // reset
+    titleEl.classList.remove("is-marquee");
+    titleEl.style.removeProperty("--marquee-dist");
+    titleEl.style.removeProperty("--marquee-dur");
+
+    // measure after layout settles
+    requestAnimationFrame(() => {
+      const overflow = span.scrollWidth - titleEl.clientWidth;
+      if (overflow <= 8) return;
+
+      // Distance should match how far we need to translate left (plus a little breathing room)
+      const dist = overflow + 28; // aligns with your padding-right: 28px
+
+      // Duration: tune for readability; longer titles scroll longer but capped
+      const ms = Math.max(7000, Math.min(20000, dist * 28));
+      const dur = `${Math.round(ms / 100) / 10}s`; // e.g. "9.6s"
+
+      titleEl.style.setProperty("--marquee-dist", `${dist}px`);
+      titleEl.style.setProperty("--marquee-dur", dur);
+      titleEl.classList.add("is-marquee");
+    });
+  }
+
+  // ---- desktop tray helpers (tray exists only on desktop) ----
+  function escapeHTML(s) {
+    return String(s)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  function renderTrackList() {
+    if (!listEl) return;
+
+    // CSS expects `.track-item` inside `.player-tray-inner`
+    listEl.innerHTML = TRACKS.map((t, i) => {
+      const isCurrent = i === idx;
+      const cls = `track-item${isCurrent ? " is-current" : ""}`;
+      return `<button type="button" class="${cls}" data-track-index="${i}">
+        <span>${escapeHTML(t.title)}</span>
+      </button>`;
+    }).join("");
+
+    listEl.querySelectorAll("[data-track-index]").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        const i = Number(btn.getAttribute("data-track-index"));
+        if (!Number.isFinite(i)) return;
+
+        const shouldAutoplay = !audio.paused;
+        load(i, { autoplay: shouldAutoplay });
+
+        // Desktop: collapse after selection
+        setTrayOpen(false);
+
+        if (window.mooniformBurstAt) window.mooniformBurstAt(e.clientX, e.clientY);
+
+        if (shouldAutoplay) {
+          try { await audio.play(); } catch (_) {}
+        }
+      });
+    });
+  }
+
+  function setTrayOpen(open) {
+    // Mobile has no tray; keep this inert there
+    if (isMobile()) {
+      dock.classList.remove("is-tray-open");
+      if (menuBtn) menuBtn.setAttribute("aria-expanded", "false");
+      if (tray) tray.setAttribute("aria-hidden", "true");
+      return;
     }
 
-    function next() {
-      idx = (idx + 1) % TRACKS.length;
-      load(idx);
-      if (!audio.muted) audio.play().catch(() => {});
+    const isOpen = !!open;
+    dock.classList.toggle("is-tray-open", isOpen);
+
+    if (menuBtn) menuBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    if (tray) tray.setAttribute("aria-hidden", isOpen ? "false" : "true");
+
+    if (isOpen) {
+      renderTrackList();
+      const current = listEl?.querySelector(".track-item.is-current");
+      current?.scrollIntoView({ block: "nearest" });
     }
+  }
 
-    // Default muted (autoplay-safe)
-    audio.muted = true;
-    muteBtn.classList.remove("is-live");
-    muteBtn.setAttribute("aria-pressed", "false");
-    muteBtn.setAttribute("aria-label", "Enable sound");
+  // ---- load / navigation ----
+  function load(i, { autoplay = false } = {}) {
+    idx = (i + TRACKS.length) % TRACKS.length;
+    localStorage.setItem(TRACK_KEY, String(idx));
 
-    load(idx);
+    const t = TRACKS[idx];
 
-    // advance on end
-    audio.addEventListener("ended", () => {
-      setProgressPct(0);
-      next();
-    });
+    // Put title into the marquee span
+    const span = ensureMarqueeSpan();
+    span.textContent = t.title;
 
-    // enable sound + start playback
-    muteBtn.addEventListener("click", async (e) => {
+    audio.src = t.src;
+    audio.load();
+    setProgressPct(0);
+
+    // Desktop list highlight update
+    if (!isMobile()) renderTrackList();
+
+    applyMarquee();
+
+    if (autoplay) audio.play().catch(() => {});
+  }
+
+  function prev() { load(idx - 1, { autoplay: !audio.paused }); }
+  function next() { load(idx + 1, { autoplay: !audio.paused }); }
+
+  // Start paused (autoplay-safe)
+  setPlayingUI(false);
+  load(idx, { autoplay: false });
+
+  audio.addEventListener("ended", () => {
+    setProgressPct(0);
+    next();
+  });
+
+  // ---- transport ----
+  playBtn.addEventListener("click", async (e) => {
+    if (window.mooniformBurstAt) window.mooniformBurstAt(e.clientX, e.clientY);
+
+    if (audio.paused) {
+      try { await audio.play(); } catch (_) {}
+    } else {
+      audio.pause();
+    }
+  });
+
+  prevBtn.addEventListener("click", (e) => {
+    if (window.mooniformBurstAt) window.mooniformBurstAt(e.clientX, e.clientY);
+    prev();
+  });
+
+  nextBtn.addEventListener("click", (e) => {
+    if (window.mooniformBurstAt) window.mooniformBurstAt(e.clientX, e.clientY);
+    next();
+  });
+
+  // ---- tray wiring (desktop only; elements exist but are hidden on mobile) ----
+  if (menuBtn && tray && listEl) {
+    menuBtn.setAttribute("aria-expanded", "false");
+    tray.setAttribute("aria-hidden", "true");
+
+    menuBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       if (window.mooniformBurstAt) window.mooniformBurstAt(e.clientX, e.clientY);
-
-      const wasMuted = audio.muted;
-
-      audio.muted = false;
-      muteBtn.classList.add("is-live");
-      muteBtn.setAttribute("aria-pressed", "true");
-      muteBtn.setAttribute("aria-label", "Sound enabled");
-
-      if (wasMuted) {
-        try {
-          await audio.play();
-        } catch (_) {}
-      }
+      if (isMobile()) return;
+      setTrayOpen(!dock.classList.contains("is-tray-open"));
     });
 
-    nextBtn.addEventListener("click", (e) => {
-      if (window.mooniformBurstAt) window.mooniformBurstAt(e.clientX, e.clientY);
-      next();
+    // Close when clicking outside the dock (desktop only)
+    document.addEventListener("mousedown", (e) => {
+      if (isMobile()) return;
+      if (!dock.classList.contains("is-tray-open")) return;
+      if (dock.contains(e.target)) return;
+      setTrayOpen(false);
     });
 
+    // Esc closes
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape") return;
+      if (!dock.classList.contains("is-tray-open")) return;
+      setTrayOpen(false);
+    });
+  }
+
+  // ---- ensure behavior is correct when crossing breakpoint ----
+  const mq = window.matchMedia("(max-width: 768px)");
+  const syncViewport = () => {
+    // Always close tray on mode change
+    setTrayOpen(false);
+
+    // Keep marquee correct after resize
+    applyMarquee();
+  };
+  mq.addEventListener?.("change", syncViewport);
+  window.addEventListener("resize", () => applyMarquee(), { passive: true });
+
+  // ---- scrubbing ----
+  function seekFromClientX(clientX) {
+    const dur = audio.duration;
+    if (!dur || !isFinite(dur) || dur <= 0) return;
+
+    const rect = bar.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const t = Math.max(0, Math.min(1, x / rect.width));
+
+    audio.currentTime = t * dur;
+    updateProgress();
+  }
+
+  bar.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    seekFromClientX(e.clientX);
+    if (window.mooniformBurstAt) window.mooniformBurstAt(e.clientX, e.clientY);
+  });
+
+  let scrubbing = false;
+
+  function startScrub(clientX) {
+    scrubbing = true;
+    seekFromClientX(clientX);
+  }
+  function moveScrub(clientX) {
+    if (!scrubbing) return;
+    seekFromClientX(clientX);
+  }
+  function endScrub() { scrubbing = false; }
+
+  bar.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+    startScrub(e.clientX);
+  });
+
+  window.addEventListener("mousemove", (e) => moveScrub(e.clientX));
+  window.addEventListener("mouseup", endScrub);
+
+  bar.addEventListener(
+    "touchstart",
+    (e) => {
+      if (!e.touches?.length) return;
+      e.preventDefault();
+      startScrub(e.touches[0].clientX);
+    },
+    { passive: false }
+  );
+
+  window.addEventListener(
+    "touchmove",
+    (e) => {
+      if (!scrubbing || !e.touches?.length) return;
+      e.preventDefault();
+      moveScrub(e.touches[0].clientX);
+    },
+    { passive: false }
+  );
+
+  window.addEventListener("touchend", endScrub);
+
+  // ---- close/dismiss dock (desktop only; hidden on mobile by CSS) ----
+  if (closeBtn) {
     closeBtn.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -476,79 +724,11 @@
 
       dock.style.display = "none";
       localStorage.setItem(DOCK_KEY, "1");
-      try {
-        audio.pause();
-      } catch (_) {}
+
+      try { audio.pause(); } catch (_) {}
     });
-
-    // ---- scrubbing (click + drag) ----
-    if (bar) {
-      function seekFromClientX(clientX) {
-        const dur = audio.duration;
-        if (!dur || !isFinite(dur) || dur <= 0) return;
-
-        const rect = bar.getBoundingClientRect();
-        const x = clientX - rect.left;
-        const t = Math.max(0, Math.min(1, x / rect.width));
-
-        audio.currentTime = t * dur;
-        updateProgress();
-      }
-
-      // Click-to-seek
-      bar.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        seekFromClientX(e.clientX);
-        if (window.mooniformBurstAt) window.mooniformBurstAt(e.clientX, e.clientY);
-      });
-
-      // Drag-to-scrub (mouse + touch)
-      let scrubbing = false;
-
-      function startScrub(clientX) {
-        scrubbing = true;
-        seekFromClientX(clientX);
-      }
-      function moveScrub(clientX) {
-        if (!scrubbing) return;
-        seekFromClientX(clientX);
-      }
-      function endScrub() {
-        scrubbing = false;
-      }
-
-      bar.addEventListener("mousedown", (e) => {
-        e.preventDefault();
-        startScrub(e.clientX);
-      });
-
-      window.addEventListener("mousemove", (e) => moveScrub(e.clientX));
-      window.addEventListener("mouseup", endScrub);
-
-      bar.addEventListener(
-        "touchstart",
-        (e) => {
-          if (!e.touches?.length) return;
-          e.preventDefault();
-          startScrub(e.touches[0].clientX);
-        },
-        { passive: false }
-      );
-
-      window.addEventListener(
-        "touchmove",
-        (e) => {
-          if (!scrubbing || !e.touches?.length) return;
-          e.preventDefault();
-          moveScrub(e.touches[0].clientX);
-        },
-        { passive: false }
-      );
-
-      window.addEventListener("touchend", endScrub);
-    }
   }
+}
 
   /* =========================================================
      INIT (once DOM exists)
