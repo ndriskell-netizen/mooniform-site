@@ -648,6 +648,15 @@ button:active,
   .origin-inline {
     display: inline-flex;
   }
+
+  .player-label,
+  .player-note {
+    display: none;
+  }
+
+  .player-text {
+    gap: 0; /* reclaim space */
+  }
 }
 
 /* =========================================
