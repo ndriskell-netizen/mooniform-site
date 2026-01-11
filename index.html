@@ -82,86 +82,86 @@
 
       <!-- bottom inverted section -->
       <section class="invert" id="contact" aria-label="Shows and booking">
-        <div class="invert-grid">
-          <!-- LEFT -->
-          <div class="invert-left">
-            <h2>Upcoming Shows</h2>
+  <div class="invert-grid">
+    <!-- LEFT -->
+    <div class="invert-left">
+      <h2>Upcoming Shows</h2>
 
-            <!-- populated by js/main.js from Google Sheets CSV -->
-            <ul class="shows" id="showsList" aria-live="polite">
-              <li class="show-meta">loading…</li>
-            </ul>
+      <ul class="shows" id="showsList" aria-live="polite">
+        <li class="show-meta">loading…</li>
+      </ul>
 
-            <h2>Book</h2>
+      <h2>Book</h2>
 
-<div class="availability">
-  <label class="availability-label" for="availDate">check availability</label>
+      <div class="availability">
+        <label class="availability-label" for="availDate">check availability</label>
 
-  <div class="availability-row">
-    <input id="availDate" type="date" required autocomplete="off" />
-    <button id="availCheck" type="button">check</button>
-  </div>
-
-  <div id="availResult" class="availability-result" aria-live="polite"></div>
-</div>
-
-<form
-  id="bookingForm"
-  class="booking"
-  action="https://formspree.io/f/mjggbpaz"
-  method="POST"
->
-  <label>
-    name
-    <input name="name" required autocomplete="name" />
-  </label>
-
-  <label>
-    email
-    <input name="email" type="email" required autocomplete="email" />
-  </label>
-
-  <label>
-    date / timeframe
-    <input name="date" placeholder="e.g., March 2026 / flexible" />
-  </label>
-
-  <label>
-    message
-    <textarea name="message" rows="5" required></textarea>
-  </label>
-
-  <input type="hidden" name="_subject" value="Mooniform booking inquiry" />
-
-  <div class="booking-submit" id="bookingSubmit">
-    <button type="submit">send</button>
-  </div>
-</form>
-
-          <!-- divider -->
-          <div class="invert-divider" aria-hidden="true"></div>
-
-          <!-- RIGHT -->
-          <div class="invert-right">
-            <a
-              class="photo-link"
-              href="https://www.instagram.com/mooniform/"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="@mooniform on Instagram"
-            >
-              <figure class="photo-frame">
-                <div class="photo-title">Follow @Mooniform on Instagram</div>
-                <img
-                  src="assets/img assets/IMG_0473.jpeg"
-                  alt="Mooniform performing live on stage"
-                  loading="lazy"
-                />
-              </figure>
-            </a>
-          </div>
+        <div class="availability-row">
+          <input id="availDate" type="date" required autocomplete="off" />
+          <button id="availCheck" type="button">check</button>
         </div>
-      </section>
+
+        <div id="availResult" class="availability-result" aria-live="polite"></div>
+      </div>
+
+      <form
+        id="bookingForm"
+        class="booking"
+        action="https://formspree.io/f/mjggbpaz"
+        method="POST"
+      >
+        <label>
+          name
+          <input name="name" required autocomplete="name" />
+        </label>
+
+        <label>
+          email
+          <input name="email" type="email" required autocomplete="email" />
+        </label>
+
+        <label>
+          date / timeframe
+          <input name="date" placeholder="e.g., March 2026 / flexible" />
+        </label>
+
+        <label>
+          message
+          <textarea name="message" rows="5" required></textarea>
+        </label>
+
+        <input type="hidden" name="_subject" value="Mooniform booking inquiry" />
+
+        <div class="booking-submit" id="bookingSubmit">
+          <button type="submit">send</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- divider -->
+    <div class="invert-divider" aria-hidden="true"></div>
+
+    <!-- RIGHT -->
+    <div class="invert-right">
+      <a
+        class="photo-link"
+        href="https://www.instagram.com/mooniform/"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="@mooniform on Instagram"
+      >
+        <figure class="photo-frame">
+          <div class="photo-title">Follow @Mooniform on Instagram</div>
+          <img
+            src="assets/img assets/IMG_0473.jpeg"
+            alt="Mooniform performing live on stage"
+            loading="lazy"
+          />
+        </figure>
+      </a>
+    </div>
+  </div>
+</section>
     </main>
 
     <!-- site color switcher -->
