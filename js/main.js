@@ -370,6 +370,7 @@
     loadShowsFromSheet();
     setupBookingForm();
     setupAvailabilityUI();
+    setupMiniPlayerDock();
   }
 
   if (document.readyState === "loading") {
