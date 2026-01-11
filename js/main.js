@@ -457,11 +457,11 @@ function setupMiniPlayerDock() {
   });
 
   closeBtn.addEventListener("click", (e) => {
-    if (window.mooniformBurstAt) window.mooniformBurstAt(e.clientX, e.clientY);
-    dock.style.display = "none";
-    localStorage.setItem(DOCK_KEY, "1");
-
-    // Optional: stop audio if user dismisses
-    try { audio.pause(); } catch (_) {}
-  });
+  e.preventDefault();
+  e.stopPropagation();
+  if (window.mooniformBurstAt) window.mooniformBurstAt(e.clientX, e.clientY);
+  dock.style.display = "none";
+  localStorage.setItem(DOCK_KEY, "1");
+  try { audio.pause(); } catch (_) {}
+});
 }

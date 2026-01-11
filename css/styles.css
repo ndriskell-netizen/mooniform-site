@@ -543,7 +543,7 @@ button:active,
 .color-toggle {
   position: fixed;
   right: 16px;
-  bottom: 16px;
+  bottom: 86px;
   z-index: 100000;
 
   display: inline-flex;
@@ -690,12 +690,15 @@ button:active,
   align-items: center;
   gap: 10px;
   min-height: 34px;
+   /* ✅ reserve space so "×" never overlaps Next */
+  padding-right: 34px;
 }
 
 .player-close{
   position: absolute;
   top: 8px;
   right: 8px;
+  z-index: 2;
 
   width: 26px;
   height: 26px;
@@ -796,4 +799,9 @@ body{
   body{
     padding-bottom: calc(10px + 10px + 56px);
   }
+}
+
+/* Extra scroll room so fixed player never covers content */
+.player-spacer{
+  height: 88px; /* tune if you change dock height */
 }
