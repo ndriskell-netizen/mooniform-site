@@ -32,6 +32,10 @@ html, body {
     Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
+html {
+  background: #000; /* catches iOS overscroll / viewport gaps */
+}
+
 /* Base page: keep TOP white (prevents black band above content) */
 body {
   position: relative;
@@ -41,20 +45,6 @@ body {
   padding-bottom: calc(var(--padTop) + var(--dock-safe)); /* scroll room above dock */
   background: #fff;
   color: #000;
-}
-
-/* Always-black “floor” behind the fixed player + end-of-page area
-   (kills the bottom white chasm on desktop + mobile) */
-html::before{
-  content:"";
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 260px; /* enough to cover dock + breathing room */
-  background: #000;
-  z-index: 0;
-  pointer-events: none;
 }
 
 /* IMPORTANT: keep main above grain layer */
@@ -961,6 +951,11 @@ button:active,
    Mobile: simplify visuals
 ------------------------------------ */
 @media (max-width: 768px) {
+  body {
+    background: #fff; /* keep it white */
+    color: #000;
+    padding: 28px 18px;
+  }
   /* keep grain/vignette off on mobile */
   body::before,
   body::after {
@@ -1040,5 +1035,13 @@ button:active,
 
     padding: 16px 18px;
     padding-bottom: calc(16px + var(--dock-safe));
+
+    background: #000;
+    color: rgba(var(--tint-rgb), 0.92);
+    border-top: 1px solid rgba(var(--tint-rgb), 0.22);
+
+    font-size: 12px;
+    letter-spacing: 0.01em;
+    opacity: 0.9;
   }
 }
