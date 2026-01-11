@@ -17,6 +17,9 @@
 
   /* site tint (RGB only, JS swaps this) */
   --tint-rgb: 0, 255, 0;
+
+  /* clearance so fixed dock never blocks footer/content */
+  --dock-safe: 96px; /* desktop default; overridden on mobile below */
 }
 
 * { box-sizing: border-box; }
@@ -29,11 +32,29 @@ html, body {
     Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
-/* Base page */
+/* Base page: keep TOP white (prevents black band above content) */
 body {
+  position: relative;
+  z-index: 1;
+
   padding: var(--padTop) var(--pad);
+  padding-bottom: calc(var(--padTop) + var(--dock-safe)); /* scroll room above dock */
   background: #fff;
   color: #000;
+}
+
+/* Always-black “floor” behind the fixed player + end-of-page area
+   (kills the bottom white chasm on desktop + mobile) */
+html::before{
+  content:"";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 260px; /* enough to cover dock + breathing room */
+  background: #000;
+  z-index: 0;
+  pointer-events: none;
 }
 
 /* IMPORTANT: keep main above grain layer */
@@ -615,50 +636,6 @@ button:active,
   outline-offset: 2px;
 }
 
-/* ------------------------------------
-   Mobile: simplify visuals
------------------------------------- */
-@media (max-width: 768px) {
-  body::before,
-  body::after {
-    display: none;
-  }
-
-  /* Keep tint on mobile — do NOT override --tint-rgb here */
-
-  body {
-    background: #fff;
-    color: #000;
-    padding: 28px 18px;
-  }
-
-  .invert {
-    background: #000;
-    color: #e6ffe6;
-  }
-
-  .color-toggle {
-    display: none !important;
-  }
-
-  .origin {
-    display: none;
-  }
-
-  .origin-inline {
-    display: inline-flex;
-  }
-
-  .player-label,
-  .player-note {
-    display: none;
-  }
-
-  .player-text {
-    gap: 0; /* reclaim space */
-  }
-}
-
 /* =========================================
    Floating mini-player footer (finalized)
 ========================================= */
@@ -756,7 +733,7 @@ button:active,
 .player-dock.is-playing #playerPlay .icon-play{ display: none; }
 .player-dock.is-playing #playerPlay .icon-pause{ display: block; }
 
-/* Now Playing text */
+/* Text row */
 .player-text{
   display: flex;
   align-items: baseline;
@@ -887,7 +864,7 @@ button:active,
 .menu-desktop{ display: inline-flex; }
 .menu-mobile{ display: none; }
 
-/* Tray: desktop popover that blooms upward (NO extra circle/connector) */
+/* Tray: desktop popover that blooms upward */
 .player-tray{
   position: absolute;
   right: 12px;
@@ -922,7 +899,6 @@ button:active,
   pointer-events: auto;
 }
 
-/* Optional: emphasize menu when open */
 .player-dock.is-tray-open .player-menu{
   background: rgba(0,0,0,0.65);
   border-color: rgba(var(--tint-rgb), 0.75);
@@ -936,7 +912,6 @@ button:active,
   overflow: auto;
 }
 
-/* Track list items (buttons emitted by JS) */
 .player-tray-inner .track-item{
   width: 100%;
   display: flex;
@@ -965,22 +940,73 @@ button:active,
   background: rgba(var(--tint-rgb), 0.10);
 }
 
-/* Give page content breathing room so dock doesn't cover bottom */
-body{
-  padding-bottom: calc(14px + 14px + 64px);
-}
+/* Footer: black band; readable; always clears the fixed player */
+.site-footer{
+  margin-left: calc(var(--pad) * -1);
+  margin-right: calc(var(--pad) * -1);
 
-.player-spacer{
-  height: 96px;
+  padding: 18px var(--pad);
+  padding-bottom: calc(18px + var(--dock-safe));
+
+  background: #000;
+  color: rgba(var(--tint-rgb), 0.92);
+  border-top: 1px solid rgba(var(--tint-rgb), 0.22);
+
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  opacity: 0.92;
 }
 
 /* ------------------------------------
-   Mobile player behavior (simplified)
-   - remove caret/menu + tray entirely
-   - remove dismiss X entirely
-   - reclaim space for title + progress
+   Mobile: simplify visuals
 ------------------------------------ */
-@media (max-width: 768px){
+@media (max-width: 768px) {
+  /* keep grain/vignette off on mobile */
+  body::before,
+  body::after {
+    display: none;
+  }
+
+  /* IMPORTANT: do NOT override --tint-rgb on mobile (keeps green accents) */
+
+  body {
+    background: #fff; /* keep top clean + readable */
+    color: #000;
+    padding: 28px 18px;
+    padding-bottom: calc(28px + var(--dock-safe));
+  }
+
+  .invert {
+    background: #000;
+    color: #e6ffe6;
+  }
+
+  .color-toggle {
+    display: none !important;
+  }
+
+  .origin {
+    display: none;
+  }
+
+  .origin-inline {
+    display: inline-flex;
+  }
+
+  /* Mobile player: remove "Now Playing" label + note entirely */
+  .player-label,
+  .player-note {
+    display: none;
+  }
+
+  .player-text {
+    gap: 0;
+  }
+
+  :root{
+    --dock-safe: 104px; /* mobile clearance above dock */
+  }
+
   .player-dock{
     left: 10px;
     right: 10px;
@@ -992,6 +1018,7 @@ body{
     padding-right: 0; /* no X on mobile */
   }
 
+  /* Mobile player: remove caret/menu + tray; remove dismiss X */
   #playerClose,
   #playerMenu,
   #playerTray{
@@ -1007,35 +1034,11 @@ body{
     max-width: 360px;
   }
 
-  body{
-    padding-bottom: calc(10px + 10px + 72px);
-  }
+  .site-footer{
+    margin-left: -18px;
+    margin-right: -18px;
 
-  .player-spacer{
-    height: 104px;
-  }
-}
-
-/* =========================================
-   Site footer (black band)
-========================================= */
-
-.site-footer{
-  background: #000;
-  color: rgba(0, 255, 0, 0.92); /* stays consistent with your invert aesthetic */
-  border-top: 1px solid rgba(0, 255, 0, 0.18);
-  margin-top: 56px;
-}
-
-.site-footer__inner{
-  padding: 22px var(--pad);
-  font-size: 12px;
-  letter-spacing: 0.01em;
-  opacity: 0.92;
-}
-
-@media (max-width: 768px){
-  .site-footer__inner{
-    padding: 18px 18px;
+    padding: 16px 18px;
+    padding-bottom: calc(16px + var(--dock-safe));
   }
 }
