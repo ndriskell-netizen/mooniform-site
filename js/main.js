@@ -758,3 +758,8 @@ function setupFooterCopyright() {
     init();
   }
 })();
+
+const yearEl = document.getElementById("copyrightYear");
+if (yearEl) {
+  yearEl.textContent = new Date().getFullYear();
+}
