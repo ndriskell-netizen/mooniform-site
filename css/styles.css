@@ -624,9 +624,7 @@ button:active,
     display: none;
   }
 
-  :root {
-    --tint-rgb: 0, 0, 0;
-  }
+  /* Keep tint on mobile — do NOT override --tint-rgb here */
 
   body {
     background: #fff;
