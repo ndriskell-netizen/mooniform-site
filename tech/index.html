@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en" class="tech-html">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mooniform — Live Tech (Quick Reference)</title>
+  <meta name="description" content="Mooniform live tech quick reference: inputs, monitoring, stage notes, and show-day contact." />
+  <meta name="robots" content="noindex, nofollow" />
+
+  <!-- keep your global styles, but we'll safely override below -->
+  <link rel="stylesheet" href="/css/styles.css" />
+
+  <style>
+    :root { --tech-max: 860px; }
+
+    /* -------------------------------------------------------
+       IMPORTANT: neutralize global height/min-height rules
+       so the card can end above the bottom of the viewport
+    ------------------------------------------------------- */
+    .tech-html,
+    .tech-html body.tech-page {
+      height: auto !important;
+      min-height: 0 !important;
+    }
+
+    main.tech {
+        background: #f3faec; /* or #fff if you want pure white */
+        padding: 22px;
+        margin: 0px auto;
+        border-radius: 10px;
+    }
+
+    body.tech-page {
+      margin: 0;
+      /* page background (outside the card) */
+      background: #cfe7c6;
+      color: #000;
+
+      /* page padding so the card isn't glued to edges */
+      padding: 22px 18px calc(28px + env(safe-area-inset-bottom)) 18px;
+    }
+
+    /* The actual "card" */
+    .tech-card {
+      max-width: var(--tech-max);
+      margin: 0 auto;
+
+      background: #f3faec;
+      border: 1px solid rgba(0,0,0,0.10);
+      border-radius: 10px;
+
+      /* inside padding */
+      padding: 18px 18px 20px 18px;
+
+      /* THIS is the breathing room you want below the card */
+      margin-bottom: calc(32px + env(safe-area-inset-bottom));
+    }
+
+    /* Type + layout */
+    .pill {
+      display: inline-block;
+      padding: 6px 10px;
+      border: 1px solid rgba(0,0,0,0.16);
+      background: rgba(0,0,0,0.03);
+      font-size: 12px;
+      letter-spacing: 0.02em;
+      text-transform: lowercase;
+    }
+
+    .tech h1 {
+      font-size: clamp(28px, 4.5vw, 44px);
+      line-height: 1.05;
+      margin: 10px 0 12px 0;
+    }
+
+    .tech .lede {
+      font-size: 16px;
+      line-height: 1.6;
+      opacity: 0.9;
+      margin: 0 0 18px 0;
+    }
+
+    .tech .rule {
+      height: 1px;
+      background: rgba(0,0,0,0.12);
+      margin: 22px 0;
+    }
+
+    .tech h2 {
+      font-size: 18px;
+      margin: 0 0 10px 0;
+      letter-spacing: -0.01em;
+    }
+
+    .tech .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .tech ul {
+      margin: 0;
+      padding-left: 18px;
+      line-height: 1.65;
+      font-size: 16px;
+    }
+
+    .tech .meta {
+      display: grid;
+      gap: 6px;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .tech .meta b { font-weight: 700; }
+
+    .tech .note {
+      font-size: 14px;
+      opacity: 0.85;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .tech .contact {
+      display: grid;
+      gap: 6px;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    @media (min-width: 860px) {
+      .tech .grid.two {
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+      }
+      .tech-card {
+        padding: 20px 22px 22px 22px;
+      }
+      body.tech-page {
+        padding: 26px 22px calc(34px + env(safe-area-inset-bottom)) 22px;
+      }
+    }
+  </style>
+</head>
+
+<body class="tech-page">
+  <div class="tech-card">
+    <main class="tech">
+      <span class="pill">quick reference</span>
+      <h1>Mooniform — Live Tech</h1>
+      <p class="lede">Advance info for small–medium stages. Adaptable as needed.</p>
+
+      <div class="grid">
+        <section class="meta" aria-label="Basics">
+          <div><b>Band:</b> Mooniform</div>
+          <div><b>From:</b> Abilene, TX</div>
+          <div><b>On stage:</b> 6 people</div>
+          <div><b>Set length:</b> 45–90 min (no breaks)</div>
+        </section>
+      </div>
+
+      <div class="rule" role="separator" aria-hidden="true"></div>
+
+      <div class="grid two">
+        <section aria-label="Inputs">
+          <h2>Inputs (typical)</h2>
+          <ul>
+            <li><b>Vocals:</b> up to 5
+              <ul>
+                <li>usually 2–4 active</li>
+                <li>two can share a mic if needed</li>
+              </ul>
+            </li>
+            <li><b>Guitars:</b> 2 (amp’d, mono)</li>
+            <li><b>Bass:</b> amp mic preferred (DI OK)</li>
+            <li><b>Synth:</b> 1 mono out</li>
+            <li><b>Drums:</b> kick / snare / 3 toms / OHs</li>
+            <li><b>Electronic drum pad:</b> 1 input (intermittent, optional)</li>
+          </ul>
+
+          <p class="note" style="margin-top:12px;">No backing tracks. No playback rig.</p>
+        </section>
+
+        <section aria-label="Monitoring">
+          <h2>Monitoring</h2>
+          <ul>
+            <li><b>Drums:</b> in-ears
+              <ul>
+                <li>needs one dedicated monitor mix via XLR</li>
+                <li>includes click (generated on stage)</li>
+              </ul>
+            </li>
+            <li><b>Everyone else:</b> wedges are fine</li>
+          </ul>
+        </section>
+      </div>
+
+      <div class="rule" role="separator" aria-hidden="true"></div>
+
+      <div class="grid two">
+        <section aria-label="Stage and practical">
+          <h2>Stage / Practical</h2>
+          <ul>
+            <li>Fixed positions</li>
+            <li>Small–medium stages OK</li>
+            <li>Prefer 15–20 min minimum for changeover</li>
+            <li>Strongly prefer not to backline drums</li>
+            <li>Open to simplifying inputs (esp. vocal mics) if needed</li>
+          </ul>
+        </section>
+
+        <section aria-label="Optional">
+          <h2>Optional</h2>
+          <ul>
+            <li>Drummer can bring a full Earthworks drum mic kit<br />
+              <span class="note">(or use the house drum mics if preferred)</span>
+            </li>
+          </ul>
+        </section>
+      </div>
+
+      <div class="rule" role="separator" aria-hidden="true"></div>
+
+      <section class="contact" aria-label="Contact">
+        <h2>Contact</h2>
+        <div><b>Darby Hewitt</b> — show-day contact</div>
+        <div class="note">(number available on advance)</div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

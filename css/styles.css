@@ -1065,3 +1065,29 @@ button:active,
     padding-bottom: calc(16px + var(--dock-safe) + env(safe-area-inset-bottom));
   }
 }
+
+/* /tech: prevent end-of-page content from sitting on black html background */
+.tech-page,
+.tech-page body {
+  background: #eaf6e6;            /* or whatever your tech page "paper" color is */
+}
+
+/* Make sure the main content area itself has the same background, too */
+.tech-page main {
+  background: #eaf6e6;
+  min-height: 100svh;             /* iOS-friendly viewport height */
+  min-height: 100dvh;             /* newer browsers */
+  padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Kill global grain/vignette overlays on /tech */
+body.tech-page::before,
+body.tech-page::after{
+  display: none !important;
+}
+
+/* Make the card unmistakably neutral */
+.tech-card{
+  background: #fff;          /* pure white so it can’t “read” green */
+  overflow: hidden;          /* keeps edges clean with rounded corners */
+}
