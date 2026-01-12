@@ -18,6 +18,11 @@
   // - API restriction: Google Calendar API only
   const G_API_KEY = "AIzaSyDiX3TZXSmNuaecuunXHBOJ43SJKpgHjKE";
 
+function trayLabel(fullTitle) {
+  // Only affects tray labels. Keeps "Now Playing" text unchanged elsewhere.
+  return String(fullTitle).replace(/^mooniform\s*[—-]\s*/i, "");
+}
+
   // Mini-player: self-hosted playlist
   const TRACKS = [
     {
@@ -538,7 +543,7 @@
       const isCurrent = i === idx;
       const cls = `track-item${isCurrent ? " is-current" : ""}`;
       return `<button type="button" class="${cls}" data-track-index="${i}">
-        <span>${escapeHTML(t.title)}</span>
+        <span>${escapeHTML(trayLabel(t.title))}</span>
       </button>`;
     }).join("");
 
@@ -547,17 +552,12 @@
         const i = Number(btn.getAttribute("data-track-index"));
         if (!Number.isFinite(i)) return;
 
-        const shouldAutoplay = !audio.paused;
-        load(i, { autoplay: shouldAutoplay });
+        load(i, { autoplay: true });
 
         // Desktop: collapse after selection
         setTrayOpen(false);
 
         if (window.mooniformBurstAt) window.mooniformBurstAt(e.clientX, e.clientY);
-
-        if (shouldAutoplay) {
-          try { await audio.play(); } catch (_) {}
-        }
       });
     });
   }
@@ -616,7 +616,7 @@
 
   audio.addEventListener("ended", () => {
     setProgressPct(0);
-    next();
+    load(idx + 1, { autoplay: true }); // <-- force autoplay on ended
   });
 
   // ---- transport ----
