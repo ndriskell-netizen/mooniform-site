@@ -24,6 +24,34 @@
       title: "Mooniform — Mole Sauce (Web Exclusive)",
       src: "assets/audio/mooniform-mole_sauce.mp3",
     },
+    {
+      title: "Mooniform — Django Beat",
+      src: "assets/audio/DjangoBeat_mastered_revised.mp3",
+    },
+    {
+      title: "Mooniform — Coyote (feat. Rob Watkins)",
+      src: "assets/audio/06 Coyote_6_5_23.mp3",
+    },
+    {
+      title: "Mooniform — MacGuffin",
+      src: "assets/audio/9_25__macguffin_mastered.mp3",
+    },
+    {
+      title: "Mooniform — Dinosaur Tom",
+      src: "assets/audio/Dinosaur Tom.mp3",
+    },
+    {
+      title: "Mooniform — Souvenir",
+      src: "assets/audio/01 souvenir__6_29_23.mp3",
+    },
+    {
+      title: "Mooniform — Wave",
+      src: "assets/audio/wave_mastered_revised.mp3",
+    },
+    {
+      title: "Mooniform — Koi Pond Ghost Town",
+      src: "assets/audio/02 KoiPondGhostTown_6_5_23.mp3",
+    }
     // { title: "Mooniform — Dinosaur Tom", src: "assets/audio/mooniform-dinosaur-tom.mp3" },
     // { title: "Mooniform — Wave", src: "assets/audio/mooniform-wave.mp3" },
   ];
