@@ -56,9 +56,27 @@ function trayLabel(fullTitle) {
     {
       title: "Mooniform — Koi Pond Ghost Town",
       src: "assets/audio/02 KoiPondGhostTown_6_5_23.mp3",
-    }
-    // { title: "Mooniform — Dinosaur Tom", src: "assets/audio/mooniform-dinosaur-tom.mp3" },
-    // { title: "Mooniform — Wave", src: "assets/audio/mooniform-wave.mp3" },
+    },
+    {
+      title: "Mooniform — Close Proximity",
+      src: "assets/audio/9_25__closeProx_mastered.mp3",
+    },
+    {
+      title: "Mooniform — Doozy",
+      src: "assets/audio/03 Doozy__6_26_23.mp3",
+    },
+    {
+      title: "Mooniform — Cobra",
+      src: "assets/audio/Cobra_mastered_revised2.mp3",
+    },
+    {
+      title: "Mooniform — I Let It Slip",
+      src: "assets/audio/07 ILetItSlip__6_27_23.mp3",
+    },
+    {
+      title: "Mooniform — Joyriding",
+      src: "assets/audio/12 Joyriding__6_16_23.mp3",
+    },
   ];
 
   /* =========================================================
