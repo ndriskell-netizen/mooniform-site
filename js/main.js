@@ -462,11 +462,18 @@ function trayLabel(fullTitle) {
   }
 
   // ---- state ----
-  let idx = (() => {
-    const saved = Number(localStorage.getItem(TRACK_KEY));
-    if (Number.isFinite(saved) && saved >= 0 && saved < TRACKS.length) return saved;
-    return Math.floor(Math.random() * TRACKS.length);
-  })();
+  // ---- state ----
+let idx = (() => {
+  // If a user previously picked a track, keep it.
+  const saved = Number(localStorage.getItem(TRACK_KEY));
+  if (Number.isFinite(saved) && saved >= 0 && saved < TRACKS.length) return saved;
+
+  // Otherwise choose a different "first" track each load.
+  // Use a new random value and persist it so the tray highlight matches.
+  const r = Math.floor(Math.random() * TRACKS.length);
+  localStorage.setItem(TRACK_KEY, String(r));
+  return r;
+})();
 
   // ---- progress helpers ----
   function setProgressPct(pct) {
