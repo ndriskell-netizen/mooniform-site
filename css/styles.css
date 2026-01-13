@@ -582,7 +582,7 @@ button:active,
   overflow: hidden;
   white-space: nowrap;
 
-  margin-right: 2px;
+  margin-right:  0px;
   transition: max-width 180ms ease, opacity 180ms ease;
 }
 
